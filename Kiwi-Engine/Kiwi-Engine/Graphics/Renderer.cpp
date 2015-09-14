@@ -239,6 +239,7 @@ namespace Kiwi
 			if( depthState != 0 )
 			{
 				m_d3dInterface->SetRenderTarget( renderTarget->GetView(), depthState->GetD3DView() );
+
 			} else
 			{
 				m_d3dInterface->SetRenderTarget( renderTarget->GetView(), NULL );

@@ -16,7 +16,7 @@ namespace Kiwi
 	class Renderer;
 	class Entity;
 	class EntityManager;
-	//class SceneLoader;
+	class SceneLoader;
 	class IAsset;
 	class Camera;
 	class IRenderable;
@@ -35,7 +35,7 @@ namespace Kiwi
 		Kiwi::RenderTargetManager* m_renderTargetManager;
 		Kiwi::EntityManager* m_entityManager;
 		Kiwi::AssetManager* m_assetManager;
-		//Kiwi::SceneLoader* m_sceneLoader;
+		Kiwi::SceneLoader* m_sceneLoader;
 
 		Kiwi::Vector4 m_diffuseLight;
 		Kiwi::Vector4 m_diffuseDirection;

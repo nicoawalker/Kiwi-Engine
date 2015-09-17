@@ -1,13 +1,18 @@
 #include "EngineRoot.h"
+#include "Logger.h"
 
 #include <Windows.h>
 
 namespace Kiwi
 {
 
+	Kiwi::Logger _Logger;
+
 	EngineRoot::EngineRoot() :
 		m_sceneManager( this )
 	{
+
+		_Logger.Initialize( L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Logs\\debug.txt" );
 
 	}
 

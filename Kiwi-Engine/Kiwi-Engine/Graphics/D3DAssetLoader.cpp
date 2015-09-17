@@ -38,7 +38,7 @@ namespace Kiwi
 
 	}
 
-	Kiwi::Texture* D3DAssetLoader::LoadTexture( std::wstring textureName, unsigned long textureID, std::wstring filename )
+	Kiwi::Texture* D3DAssetLoader::LoadTexture( std::wstring textureName, std::wstring filename )
 	{
 
 		assert( m_device != 0 );
@@ -53,6 +53,7 @@ namespace Kiwi
 			HRESULT hr = D3DX11CreateShaderResourceViewFromFileW( m_device, filename.c_str(), NULL, NULL, &newShaderRes, NULL );
 			if( FAILED( hr ) )
 			{
+				MessageBox( NULL, L"B", L"A", MB_OK );
 				throw Kiwi::Exception( L"D3DAssetLoader::LoadTexture", L"Failed to create shader resource view for texture '" + filename + L"'" );
 			}
 

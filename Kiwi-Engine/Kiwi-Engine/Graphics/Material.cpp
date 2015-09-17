@@ -20,6 +20,7 @@ namespace Kiwi
 		m_diffuseColor = Kiwi::Color( 1.0f, 1.0f, 1.0f, 1.0f );
 
 	}
+
 	Material::Material(std::wstring name, const Kiwi::Color& diffuseColor)
 	{
 
@@ -46,11 +47,6 @@ namespace Kiwi
 		m_bumpMap = bumpMap;
 		m_ambientMap = ambientMap;
 		m_specularMap = specularMap;
-
-		m_diffuseMap = 0;
-		m_bumpMap = 0;
-		m_ambientMap = 0;
-		m_specularMap = 0;
 
 		m_reflectivity = 0.0f;
 		m_opticalDensity = 0.0f;
@@ -125,19 +121,19 @@ namespace Kiwi
 	Kiwi::Texture* Material::GetTexture(std::wstring textureType)const
 	{
 
-		if (textureType.compare(L"DiffuseMap") == 0)
+		if (textureType.compare(L"Diffuse") == 0)
 		{
 			return m_diffuseMap;
 
-		} else if (textureType.compare(L"AmbientMap") == 0)
+		} else if (textureType.compare(L"Ambient") == 0)
 		{
 			return m_ambientMap;
 
-		} else if (textureType.compare(L"BumpMap") == 0)
+		} else if (textureType.compare(L"Bump") == 0)
 		{
 			return m_bumpMap;
 
-		} else if (textureType.compare(L"SpecularMap") == 0)
+		} else if (textureType.compare(L"Specular") == 0)
 		{
 			return m_specularMap;
 		}
@@ -149,19 +145,19 @@ namespace Kiwi
 	const Kiwi::Color& Material::GetColor(std::wstring colorType)const
 	{
 
-		if (colorType.compare(L"DiffuseColor") == 0)
+		if (colorType.compare(L"Diffuse") == 0)
 		{
 			return m_diffuseColor;
 
-		} else if (colorType.compare(L"AmbientColor") == 0)
+		} else if (colorType.compare(L"Ambient") == 0)
 		{
 			return m_ambientColor;
 
-		} else if (colorType.compare(L"SpecularColor") == 0)
+		} else if (colorType.compare(L"Specular") == 0)
 		{
 			return m_specularColor;
 
-		} else if (colorType.compare(L"EmissiveColor") == 0)
+		} else if (colorType.compare(L"Emissive") == 0)
 		{
 			return m_emissiveColor;
 

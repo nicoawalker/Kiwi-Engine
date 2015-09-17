@@ -4,11 +4,11 @@
 #include "Assert.h"
 #include "EntityManager.h"
 #include "AssetManager.h"
-//#include "SceneLoader.h"
+#include "SceneLoader.h"
 
 #include "../Graphics/Renderer.h"
 #include "../Graphics/IShader.h"
-//#include "../Graphics/Mesh.h"
+#include "../Graphics/Mesh.h"
 #include "../Graphics/IRenderable.h"
 #include "../Graphics/RenderTargetManager.h"
 
@@ -39,7 +39,7 @@ namespace Kiwi
 			m_renderTargetManager = new Kiwi::RenderTargetManager();
 			m_entityManager = new Kiwi::EntityManager();
 			m_assetManager = new Kiwi::AssetManager();
-			//m_sceneLoader = new Kiwi::SceneLoader( this );
+			m_sceneLoader = new Kiwi::SceneLoader( this );
 
 			//add the back buffer render target to the render target manager
 			Kiwi::RenderTarget* backBuffer = m_renderer->GetBackBuffer();
@@ -59,14 +59,14 @@ namespace Kiwi
 
 		SAFE_DELETE( m_entityManager );
 		SAFE_DELETE( m_assetManager );
-		//SAFE_DELETE( m_sceneLoader );
+		SAFE_DELETE( m_sceneLoader );
 
 	}
 
 	void Scene::Load()
 	{
 
-		/*m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh", L"H:\\Programming\\Projects\\KiwiDemo\\KiwiDemo\\Data\\Models\\OldFarmhouse\\FarmhouseOBJ.obj" );
+		m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\Old Farm House\\Farmhouse OBJ.obj" );
 
 		m_sceneLoader->Start();
 		while( !m_sceneLoader->Finished() )
@@ -77,7 +77,7 @@ namespace Kiwi
 		if( m_sceneLoader->GetExceptions().size() != 0 )
 		{
 			throw m_sceneLoader->GetExceptions()[0];
-		}*/
+		}
 
 	}
 

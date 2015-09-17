@@ -29,7 +29,7 @@ namespace Kiwi
 		D3DAssetLoader();
 		~D3DAssetLoader();
 
-		Kiwi::Texture* LoadTexture( std::wstring textureName, unsigned long textureID, std::wstring filename );
+		Kiwi::Texture* LoadTexture( std::wstring textureName, std::wstring filename );
 
 		ID3D11Device* GetDevice()const { return m_device; }
 		ID3D11DeviceContext* GetDeviceContext()const { return m_deviceContext; }

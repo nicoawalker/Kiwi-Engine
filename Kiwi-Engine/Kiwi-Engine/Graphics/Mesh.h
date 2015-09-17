@@ -31,6 +31,7 @@ namespace Kiwi
 
 		struct Vertex
 		{
+			Vertex() {}
 			Vertex( float x, float y, float z, float u, float v, float nX, float nY, float nZ ): 
 				position( x, y, z ), textureUV( u, v ), normals( nX, nY, nZ ) {}
 			Vertex( const Kiwi::Vector3& pos, const Kiwi::Vector2& texUV, const Kiwi::Vector3& normal ) :

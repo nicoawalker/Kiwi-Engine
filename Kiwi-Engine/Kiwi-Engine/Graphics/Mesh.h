@@ -93,7 +93,7 @@ namespace Kiwi
 
 		std::wstring GetName()const { return m_name; }
 
-		int GetSubsetCount()const { return (int)m_subsets.size(); }
+		unsigned int GetSubsetCount()const { return (unsigned int)m_subsets.size(); }
 		int GetIndexCount()const;
 		int GetVertexCount()const;
 

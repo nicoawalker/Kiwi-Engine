@@ -10,6 +10,7 @@
 #include "../Graphics/OBJImporter.h"
 #include "../Graphics/Mesh.h"
 #include "../Graphics/Material.h"
+#include "../Graphics/Renderer.h"
 
 #include <future>
 #include <fstream>
@@ -222,19 +223,24 @@ namespace Kiwi
 	Kiwi::IAsset* SceneLoader::_LoadTexture( std::wstring name, std::wstring textureFile )
 	{
 
+		assert( m_scene != 0 && m_scene->GetRenderer() != 0 && m_scene->GetRenderer()->GetDevice() != 0 );
+
 		try
 		{
-			//create a loader to load the texture
-			//this creates a new D3D device to do the loading for this thread
-			D3DAssetLoader loader;
 
 			Kiwi::Texture* texture = 0;
 
-			m_assetID.guard.lock();
-				unsigned int id = m_assetID.id++;
-			m_assetID.guard.unlock();
+			ID3D11ShaderResourceView* newShaderRes = 0;
+			//d3d device in directx11 is thread safe, can use it here to create the texture
+			ID3D11Device* device = m_scene->GetRenderer()->GetDevice();
 
-			texture = loader.LoadTexture( name, id, textureFile );
+			HRESULT hr = D3DX11CreateShaderResourceViewFromFileW( device, textureFile.c_str(), NULL, NULL, &newShaderRes, NULL );
+			if( FAILED( hr ) )
+			{
+				throw Kiwi::Exception( L"D3DAssetLoader::LoadTexture", L"Failed to create shader resource view for texture '" + name + L"'" );
+			}
+
+			texture = new Kiwi::Texture( name, textureFile, 0, newShaderRes );
 
 			if( texture != 0 )
 			{
@@ -277,57 +283,221 @@ namespace Kiwi
 				Kiwi::Texture* specularMap = 0;
 				Kiwi::Texture* bumpMap = 0;
 
-				//first try to find the textures, if they've been loaded
-				std::unique_lock<std::mutex> sLock( *m_scene->m_mutex );
-					diffuseMap = m_scene->FindAssetWithName<Kiwi::Texture>( data->mData.diffuseMap );
-					ambientMap = m_scene->FindAssetWithName<Kiwi::Texture>( data->mData.ambientMap );
-					specularMap = m_scene->FindAssetWithName<Kiwi::Texture>( data->mData.specularMap );
-					bumpMap = m_scene->FindAssetWithName<Kiwi::Texture>( data->mData.bumpMap );
-				sLock.unlock();
-
 				//any textures that aren't yet loaded, load them here
-				if( ambientMap == 0 && data->mData.ambientMap.compare( L"" ) != 0 )
+				if( data->mData.ambientMap.size() > 0 )
 				{
 
 					std::wstring filename = data->mData.ambientMap;
-					//store the texture name without the file type extension
-					std::wstring texName = filename.substr( 0, filename.find_last_of( L"." ) );
+					//store the texture name without the path and file type extension
+					std::wstring texName;
+					size_t pos = filename.find_last_of( L"/" ); 
+					if( pos != std::wstring::npos )
+					{
+						//remove the path and file extension, leaving just the name
+						texName = filename.substr( pos + 1, filename.find_last_of( L"." ) - (pos + 1) );
 
-					//try to load it	
-					ambientMap = dynamic_cast<Kiwi::Texture*>(this->_LoadTexture( texName, filename ));
-				}
+					} else
+					{
+						pos = filename.find_last_of( L"\\" );
+						if( pos != std::wstring::npos )
+						{
+							//remove the path and file extension, leaving just the name
+							texName = filename.substr( pos + 1, filename.find_last_of( L"." ) - (pos + 1) );
 
-				if( diffuseMap == 0 && data->mData.diffuseMap.compare( L"" ) != 0 )
+						} else
+						{
+							//didnt find any '/' or '\' characters so there appears to be no path, just remove the extension
+							texName = filename.substr( 0, filename.find_last_of( L"." ) );
+						}
+					}
+
+					if( texName.size() == 0 )
+					{
+						//no name was generated, so there is nothing to load or search for
+						break;
+					}
+
+					texName += L"_ambient";
+
+					//check if the texture is already loaded and in the scene
+					m_scene->m_mutex->lock();
+						ambientMap = m_scene->FindAssetWithName<Kiwi::Texture>( texName );
+					m_scene->m_mutex->unlock();
+
+					if( ambientMap == 0 )
+					{
+						Kiwi::IAsset* ambientMapAsset = this->_LoadTexture( texName, filename );
+						if( ambientMapAsset != 0 )
+						{
+							//texture not found, try to load it now	
+							ambientMap = dynamic_cast<Kiwi::Texture*>(ambientMapAsset);
+						} else
+						{
+							//failed to load texture
+						}
+					}
+				}	
+
+				if( data->mData.diffuseMap.size() > 0 )
 				{
 
 					std::wstring filename = data->mData.diffuseMap;
-					//store the texture name without the file type extension
-					std::wstring texName = filename.substr( 0, filename.find_last_of( L"." ) );
+					//store the texture name without the path and file type extension
+					std::wstring texName;
+					size_t pos = filename.find_last_of( L"/" );
+					if( pos != std::string::npos )
+					{
+						//remove the path and file extension, leaving just the name
+						texName = filename.substr( pos + 1, filename.find_last_of( L"." ) - (pos + 1) );
 
-					//try to load it
-					diffuseMap = dynamic_cast<Kiwi::Texture*>(this->_LoadTexture( texName, filename ));
+					} else
+					{
+						pos = filename.find_last_of( L"\\" );
+						if( pos != std::string::npos )
+						{
+							//remove the path and file extension, leaving just the name
+							texName = filename.substr( pos + 1, filename.find_last_of( L"." ) - (pos + 1) );
+
+						} else
+						{
+							//didnt find any '/' or '\' characters so there appears to be no path, just remove the extension
+							texName = filename.substr( 0, filename.find_last_of( L"." ) - (pos + 1) );
+						}
+					}
+
+					if( texName.size() == 0 )
+					{
+						//no name was generated, so there is nothing to load or search for
+						break;
+					}
+
+					texName += L"_diffuse";
+
+					//check if the texture is already loaded and in the scene
+					m_scene->m_mutex->lock();
+						diffuseMap = m_scene->FindAssetWithName<Kiwi::Texture>( texName );
+					m_scene->m_mutex->unlock();
+
+					if( diffuseMap == 0 )
+					{
+						Kiwi::IAsset* diffuseMapAsset = this->_LoadTexture( texName, filename );
+						if( diffuseMapAsset != 0 )
+						{
+							//texture not found, try to load it now	
+							diffuseMap = dynamic_cast<Kiwi::Texture*>( diffuseMapAsset );
+						} else
+						{
+							//failed to load texture
+						}
+					}
 				}
 
-				if( specularMap == 0 && data->mData.specularMap.compare( L"" ) != 0 )
+				if( data->mData.specularMap.size() > 0)
 				{
 
 					std::wstring filename = data->mData.specularMap;
-					//store the texture name without the file type extension
-					std::wstring texName = filename.substr( 0, filename.find_last_of( L"." ) );
+					//store the texture name without the path and file type extension
+					std::wstring texName;
+					size_t pos = filename.find_last_of( L"/" );
+					if( pos != std::wstring::npos )
+					{
+						//remove the path and file extension, leaving just the name
+						texName = filename.substr( pos + 1, filename.find_last_of( L"." ) - (pos + 1) );
 
-					//try to load it	
-					specularMap = dynamic_cast<Kiwi::Texture*>(this->_LoadTexture( texName, filename ));
+					} else
+					{
+						pos = filename.find_last_of( L"\\" );
+						if( pos != std::wstring::npos )
+						{
+							//remove the path and file extension, leaving just the name
+							texName = filename.substr( pos + 1, filename.find_last_of( L"." ) - (pos + 1) );
+
+						} else
+						{
+							//didnt find any '/' or '\' characters so there appears to be no path, just remove the extension
+							texName = filename.substr( 0, filename.find_last_of( L"." ) );
+						}
+					}
+
+					if( texName.size() == 0 )
+					{
+						//no name was generated, so there is nothing to load or search for
+						break;
+					}
+
+					texName += L"_specular";
+
+					//check if the texture is already loaded and in the scene
+					m_scene->m_mutex->lock();
+						specularMap = m_scene->FindAssetWithName<Kiwi::Texture>( texName );
+					m_scene->m_mutex->unlock();
+
+					if( specularMap == 0 )
+					{
+						Kiwi::IAsset* specMapAsset = this->_LoadTexture( texName, filename );
+						if( specMapAsset != 0 )
+						{
+							//texture not found, try to load it now	
+							specularMap = dynamic_cast<Kiwi::Texture*>(specMapAsset);
+						} else
+						{
+							//failed to load texture
+						}
+					}
 				}
 
-				if( bumpMap == 0 && data->mData.bumpMap.compare( L"" ) != 0 )
+				if( data->mData.bumpMap.size() > 0 )
 				{
 
 					std::wstring filename = data->mData.bumpMap;
-					//store the texture name without the file type extension
-					std::wstring texName = filename.substr( 0, filename.find_last_of( L"." ) );
+					//store the texture name without the path and file type extension
+					std::wstring texName;
+					size_t pos = filename.find_last_of( L"/" );
+					if( pos != std::wstring::npos )
+					{
+						//remove the path and file extension, leaving just the name
+						texName = filename.substr( pos + 1, filename.find_last_of( L"." ) - (pos + 1) );
 
-					//try to load it	
-					bumpMap = dynamic_cast<Kiwi::Texture*>(this->_LoadTexture( texName, filename ));
+					} else
+					{
+						pos = filename.find_last_of( L"\\" );
+						if( pos != std::wstring::npos )
+						{
+							//remove the path and file extension, leaving just the name
+							texName = filename.substr( pos + 1, filename.find_last_of( L"." ) - (pos + 1) );
+
+						} else
+						{
+							//didnt find any '/' or '\' characters so there appears to be no path, just remove the extension
+							texName = filename.substr( 0, filename.find_last_of( L"." ) );
+						}
+					}
+
+					if( texName.size() == 0 )
+					{
+						//no name was generated, so there is nothing to load or search for
+						break;
+					}
+
+					texName += L"_bump";
+
+					//check if the texture is already loaded and in the scene
+					m_scene->m_mutex->lock();
+						bumpMap = m_scene->FindAssetWithName<Kiwi::Texture>( texName );
+					m_scene->m_mutex->unlock();
+
+					if( bumpMap == 0 )
+					{
+						Kiwi::IAsset* bumpMapAsset = this->_LoadTexture( texName, filename );
+						if( bumpMapAsset != 0 )
+						{
+							//texture not found, try to load it now	
+							bumpMap = dynamic_cast<Kiwi::Texture*>(bumpMapAsset);
+						} else
+						{
+							//failed to load texture
+						}
+					}
 				}
 
 				//now create the material

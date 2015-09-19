@@ -2,10 +2,12 @@
 
 #include "DirectX.h"
 #include "Texture.h"
+#include "Renderer.h"
 
 #include "../Core/Exception.h"
 #include "../Core/Utilities.h"
 #include "../Core/Assert.h"
+#include "../Core/Scene.h"
 
 namespace Kiwi
 {
@@ -38,7 +40,7 @@ namespace Kiwi
 
 	}
 
-	Kiwi::Texture* D3DAssetLoader::LoadTexture( std::wstring textureName, std::wstring filename )
+	Kiwi::Texture* D3DAssetLoader::LoadTexture( Kiwi::Renderer* renderer, std::wstring textureName, std::wstring filename )
 	{
 
 		assert( m_device != 0 );
@@ -50,7 +52,7 @@ namespace Kiwi
 			//ID3D11Texture2D* texture = 0;
 			ID3D11ShaderResourceView* newShaderRes = 0;
 
-			HRESULT hr = D3DX11CreateShaderResourceViewFromFileW( m_device, filename.c_str(), NULL, NULL, &newShaderRes, NULL );
+			HRESULT hr = D3DX11CreateShaderResourceViewFromFileW( renderer->GetDevice(), filename.c_str(), NULL, NULL, &newShaderRes, NULL );
 			if( FAILED( hr ) )
 			{
 				MessageBox( NULL, L"B", L"A", MB_OK );

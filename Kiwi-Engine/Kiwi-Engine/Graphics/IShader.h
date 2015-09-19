@@ -10,7 +10,7 @@ namespace Kiwi
 
 	class Scene;
 	class Renderer;
-	class Entity;
+	class IRenderable;
 	class RenderTarget;
 	class IShaderEffect;
 
@@ -61,7 +61,7 @@ namespace Kiwi
 		/*sets parameters that are updated once each frame*/
 		virtual void SetFrameParameters( Kiwi::Scene* scene ) {}
 		/*sets parameters that are updated for each entity*/
-		virtual void SetEntityParameters( Kiwi::Scene* scene, Kiwi::RenderTarget* renderTarget, Kiwi::Entity* entity ) {}
+		virtual void SetObjectParameters( Kiwi::Scene* scene, Kiwi::RenderTarget* renderTarget, Kiwi::IRenderable* renderable ) {}
 
 		std::wstring GetName()const { return m_shaderName; }
 

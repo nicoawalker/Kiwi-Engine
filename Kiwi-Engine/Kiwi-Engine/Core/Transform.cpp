@@ -7,6 +7,8 @@ namespace Kiwi
 	Transform::Transform()
 	{
 
+		m_scale = Kiwi::Vector3( 1.0f, 1.0f, 1.0f );
+
 		m_lockYaw = m_lockPitch = m_lockRoll = false;
 
 	}

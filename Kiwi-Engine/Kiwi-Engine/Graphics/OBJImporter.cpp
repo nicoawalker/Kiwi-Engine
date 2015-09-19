@@ -270,6 +270,7 @@ namespace Kiwi
 							newMat.reflectivity = 0.0f;
 							newMat.opticalDensity = 0.0f;
 							newMat.illum = 0;
+							newMat.diffuseColor = Kiwi::Color( 1.0f, 1.0f, 1.0f, 1.0f );
 
 							int pos = (int)currentLine.find_first_of(' ')+1;
 							newMat.name = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);

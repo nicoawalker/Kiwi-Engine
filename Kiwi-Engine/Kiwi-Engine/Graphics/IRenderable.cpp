@@ -8,7 +8,8 @@
 namespace Kiwi
 {
 
-	IRenderable::IRenderable(std::wstring name, Kiwi::Entity* parentEntity )
+	IRenderable::IRenderable(std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh):
+		m_mesh(mesh)
 	{
 
 		if( parentEntity == 0 )
@@ -19,9 +20,9 @@ namespace Kiwi
 		m_parentEntity = parentEntity;
 		m_renderableName = name;
 		//m_shaderEffect = 0;
-		//m_mesh = 0;
 		m_renderType = RENDERABLE_3D;
 		m_renderTarget = L"BackBuffer";
+		m_currentMeshSubset = 0;
 
 	}
 
@@ -45,22 +46,30 @@ namespace Kiwi
 
 	}*/
 
-	/*void IRenderable::SetMesh( Kiwi::Mesh* mesh )
+	void IRenderable::SetMesh( const Kiwi::Mesh& mesh )
 	{
 		
-		if( mesh != 0 )
-		{
-			if( m_mesh != 0 )
-			{
-				*m_mesh = *mesh;
+		m_mesh = mesh;
 
-			} else
-			{
-				m_mesh = new Kiwi::Mesh( *mesh );
-			}
+	}
+
+	//sets one of the mesh's subsets as the currently active/rendering subset
+	void IRenderable::SetCurrentMeshSubset( unsigned int subsetIndex )
+	{
+
+		if( subsetIndex <= m_mesh.GetSubsetCount() )
+		{
+			m_currentMeshSubset = subsetIndex;
 		}
 
-	}*/
+	}
+
+	Kiwi::Mesh::Subset* IRenderable::GetCurrentMeshSubset()
+	{
+
+		return m_mesh.GetSubset( m_currentMeshSubset );
+
+	}
 
 	/*std::wstring IRenderable::GetShader()const
 	{

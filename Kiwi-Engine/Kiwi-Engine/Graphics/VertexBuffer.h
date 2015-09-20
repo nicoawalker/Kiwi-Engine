@@ -75,8 +75,11 @@ namespace Kiwi
 				} else
 				{
 					//too many elements were passed in, copy the maximum amount allowed into the buffer
-					memcpy( mr.pData, newData, m_elementCapacity * sizeof( BufferDataType ) );
-					m_elementCount = m_elementCapacity;
+					m_deviceContext->Unmap( m_buffer, 0 );
+					throw Kiwi::Exception( L"VertexBuffer::SetData", L"[" + m_name + L"] Vertex buffer is too small (size: " + Kiwi::ToWString( m_elementCapacity ) + L") to contain passed data (size: " + Kiwi::ToWString( bufferData.size() ) + L")" );
+
+					//memcpy( mr.pData, newData, m_elementCapacity * sizeof( BufferDataType ) );
+					//m_elementCount = m_elementCapacity;
 				}
 
 				m_deviceContext->Unmap( m_buffer, 0 );

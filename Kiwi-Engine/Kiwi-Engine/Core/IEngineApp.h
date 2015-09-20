@@ -11,7 +11,8 @@ namespace Kiwi
 	class EngineRoot;
 
 	class IEngineApp:
-		public Kiwi::IWindowEventListener
+		public Kiwi::IWindowEventListener,
+		public Kiwi::IFrameEventListener
 	{
 	protected:
 
@@ -29,6 +30,8 @@ namespace Kiwi
 		virtual void Launch() = 0;
 
 		virtual void OnWindowEvent( const Kiwi::WindowEvent& evt ) {}
+		virtual void OnUpdate( Kiwi::EngineRoot* engine ) {}
+		virtual void OnFixedUpdate( Kiwi::EngineRoot* engine ) {}
 
 	};
 };

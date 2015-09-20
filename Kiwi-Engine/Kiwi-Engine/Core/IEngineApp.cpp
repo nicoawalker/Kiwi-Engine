@@ -12,6 +12,8 @@ namespace Kiwi
 		m_graphicsManager = m_engine->GetGraphicsManager();
 		m_sceneManager = m_engine->GetSceneManager();
 
+		m_engine->AddListener( this );
+
 	}
 
 	IEngineApp::~IEngineApp()

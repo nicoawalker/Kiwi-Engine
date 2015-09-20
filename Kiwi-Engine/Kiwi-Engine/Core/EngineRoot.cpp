@@ -19,6 +19,8 @@ namespace Kiwi
 	EngineRoot::~EngineRoot()
 	{
 
+		_Logger.Shutdown();
+
 	}
 
 	void EngineRoot::_MainLoop()
@@ -28,6 +30,11 @@ namespace Kiwi
 		while( m_engineRunning )
 		{
 			this->_PumpMessages();
+
+			//broadcast a new untimed frame event
+			Kiwi::FrameEvent untimedFrameEvent( this, Kiwi::FrameEvent::EventType::UNTIMED_EVENT );
+			this->BroadcastEvent( untimedFrameEvent );
+
 			/*if( !m_graphicsCore->RenderFrame() )
 			{
 			m_engineRunning = false;

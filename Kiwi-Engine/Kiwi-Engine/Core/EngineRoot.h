@@ -1,6 +1,7 @@
 #ifndef _KIWI_ENGINEROOT_H_
 #define _KIWI_ENGINEROOT_H_
 
+#include "FrameEventBroadcaster.h"
 #include "SceneManager.h"
 
 #include "../Graphics/GraphicsManager.h"
@@ -8,7 +9,8 @@
 namespace Kiwi
 {
 
-	class EngineRoot
+	class EngineRoot:
+		public Kiwi::FrameEventBroadcaster
 	{
 	protected:
 
@@ -38,6 +40,7 @@ namespace Kiwi
 		Kiwi::GraphicsManager* GetGraphicsManager() { return &m_graphicsManager; }
 
 	};
+
 }
 
 #endif

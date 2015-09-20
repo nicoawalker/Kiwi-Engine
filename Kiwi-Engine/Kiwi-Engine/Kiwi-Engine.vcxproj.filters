@@ -147,6 +147,9 @@
     <ClCompile Include="Graphics\OBJImporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Core\IFrameEventListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Any.h">
@@ -315,6 +318,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\OBJImporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FrameEventBroadcaster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FrameEvent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IFrameEventListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

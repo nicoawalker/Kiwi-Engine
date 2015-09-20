@@ -46,6 +46,8 @@ namespace Kiwi
 		Scene(std::wstring name, Kiwi::Renderer* renderer);
 		virtual ~Scene();
 
+		virtual void Update() {}
+
 		virtual void Render() {}
 
 		virtual void Load();

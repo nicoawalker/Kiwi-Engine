@@ -149,6 +149,7 @@
     <ClCompile Include="Core\Exception.cpp" />
     <ClCompile Include="Core\IAsset.cpp" />
     <ClCompile Include="Core\IEngineApp.cpp" />
+    <ClCompile Include="Core\IFrameEventListener.cpp" />
     <ClCompile Include="Core\IThreadSafe.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Math.cpp" />
@@ -196,8 +197,11 @@
     <ClInclude Include="Core\Event.h" />
     <ClInclude Include="Core\EventBroadcaster.h" />
     <ClInclude Include="Core\Exception.h" />
+    <ClInclude Include="Core\FrameEvent.h" />
+    <ClInclude Include="Core\FrameEventBroadcaster.h" />
     <ClInclude Include="Core\IAsset.h" />
     <ClInclude Include="Core\IEngineApp.h" />
+    <ClInclude Include="Core\IFrameEventListener.h" />
     <ClInclude Include="Core\IThreadSafe.h" />
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Math.h" />

@@ -531,10 +531,6 @@ namespace Kiwi
 			SAFE_DELETE( objMesh );
 
 			//the subsets, vertices, and materials are loaded and created, now create the mesh
-			m_assetID.guard.lock();
-				unsigned int id = m_assetID.id++;
-			m_assetID.guard.unlock();
-
 			std::unique_lock<std::mutex> sLock( *m_scene->m_mutex );
 				Kiwi::Renderer* renderer = m_scene->GetRenderer();
 			sLock.unlock();

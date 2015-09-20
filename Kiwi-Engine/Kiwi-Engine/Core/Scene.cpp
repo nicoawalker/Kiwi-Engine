@@ -26,6 +26,11 @@ namespace Kiwi
 			throw Kiwi::Exception(L"Scene", L"Invalid renderer");
 		}
 
+		m_entityManager = 0;
+		m_assetManager = 0;
+		m_sceneLoader = 0;
+		m_renderTargetManager = 0;
+
 		try
 		{
 			m_name = name;
@@ -56,7 +61,8 @@ namespace Kiwi
 	{
 
 		m_renderer = 0;
-
+		
+		SAFE_DELETE( m_renderTargetManager );
 		SAFE_DELETE( m_entityManager );
 		SAFE_DELETE( m_assetManager );
 		SAFE_DELETE( m_sceneLoader );
@@ -66,7 +72,10 @@ namespace Kiwi
 	void Scene::Load()
 	{
 
-		m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\Old Farm House\\Farmhouse OBJ.obj" );
+		m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\policeman\\policeman.obj" );
+		m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh2", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\policeman\\policeman.obj" );
+		m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh3", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\policeman\\policeman.obj" );
+		m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh4", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\policeman\\policeman.obj" );
 
 		m_sceneLoader->Start();
 		while( !m_sceneLoader->Finished() )

@@ -177,6 +177,7 @@
     <ClCompile Include="Graphics\Material.cpp" />
     <ClCompile Include="Graphics\Mesh.cpp" />
     <ClCompile Include="Graphics\OBJImporter.cpp" />
+    <ClCompile Include="Graphics\PointLight.cpp" />
     <ClCompile Include="Graphics\RasterState.cpp" />
     <ClCompile Include="Graphics\RasterStateManager.cpp" />
     <ClCompile Include="Graphics\Renderer.cpp" />
@@ -233,6 +234,7 @@
     <ClInclude Include="Graphics\Material.h" />
     <ClInclude Include="Graphics\Mesh.h" />
     <ClInclude Include="Graphics\OBJImporter.h" />
+    <ClInclude Include="Graphics\PointLight.h" />
     <ClInclude Include="Graphics\RasterState.h" />
     <ClInclude Include="Graphics\RasterStateManager.h" />
     <ClInclude Include="Graphics\Renderer.h" />

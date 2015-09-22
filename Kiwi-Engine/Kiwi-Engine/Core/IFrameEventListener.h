@@ -15,8 +15,8 @@ namespace Kiwi
 
 		virtual void OnFrameEvent( const Kiwi::FrameEvent& evt );
 
-		virtual void OnUpdate( Kiwi::EngineRoot* engine ) {}
-		virtual void OnFixedUpdate( Kiwi::EngineRoot* engine ) {}
+		virtual void OnUpdate( const Kiwi::FrameEvent& evt ) {}
+		virtual void OnFixedUpdate( const Kiwi::FrameEvent& evt ) {}
 
 	};
 

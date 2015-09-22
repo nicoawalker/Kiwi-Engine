@@ -6,7 +6,8 @@ namespace Kiwi
 	PointLight::PointLight( std::wstring name, Kiwi::Scene* scene, float range, const Kiwi::Vector3& attenuation ):
 		Entity(name, scene)
 	{
-
+		
+		m_entityType = ENTITY_LIGHT;
 		m_diffuseColor = Kiwi::Color( 1.0f, 1.0f, 1.0f, 1.0f );
 		m_range = range;
 		m_attenuationFactor = attenuation;

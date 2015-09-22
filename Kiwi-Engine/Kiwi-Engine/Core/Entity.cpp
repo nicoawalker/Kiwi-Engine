@@ -16,6 +16,7 @@ namespace Kiwi
 		m_parent = 0;
 		m_renderable = 0;
 		m_transform = Kiwi::Transform();
+		m_entityType = ENTITY_3D;
 
 	}
 

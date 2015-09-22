@@ -57,18 +57,44 @@ namespace Kiwi
 
 		m_entities[entity->GetName()] = entity;
 
+		/*switch( entity->GetType() )
+		{
+			case Entity::ENTITY_3D:
+				{
+
+
+
+					break;
+				}
+			case Entity::ENTITY_2D:
+				{
+
+					break;
+				}
+			case Entity::ENTITY_LIGHT:
+				{
+
+					break;
+				}
+			case Entity::ENTITY_SOUND:
+				{
+					break;
+				}
+			default: break;
+		}*/
+
 	}
 
-	void EntityManager::DeleteEntity(Kiwi::Entity* entity)
+	void EntityManager::Destroy(Kiwi::Entity* entity)
 	{
 
 		if(entity == 0) return;
 
-		this->DeleteEntityWithName(entity->GetName());
+		this->DestroyWithName(entity->GetName());
 
 	}
 
-	void EntityManager::DeleteEntityWithName(std::wstring name)
+	void EntityManager::DestroyWithName(std::wstring name)
 	{
 
 		auto it = m_entities.find(name);
@@ -81,7 +107,7 @@ namespace Kiwi
 
 	}
 
-	void EntityManager::DeleteAllEntities()
+	void EntityManager::DestroyAll()
 	{
 
 		auto it = m_entities.begin();
@@ -93,7 +119,7 @@ namespace Kiwi
 
 	}
 
-	void EntityManager::DeleteAllInactiveEntities()
+	void EntityManager::DestroyInactive()
 	{
 
 		auto inactiveIt = m_entities.begin();
@@ -108,7 +134,7 @@ namespace Kiwi
 
 	}
 
-	Kiwi::Entity* EntityManager::FindEntityWithName(std::wstring name)
+	Kiwi::Entity* EntityManager::FindWithName(std::wstring name)
 	{
 
 		auto it = m_entities.find(name);
@@ -122,7 +148,7 @@ namespace Kiwi
 
 	}
 
-	std::vector<Kiwi::Entity*> EntityManager::FindEntitiesWithTag(std::wstring tag)
+	std::vector<Kiwi::Entity*> EntityManager::FindAllWithTag(std::wstring tag)
 	{
 
 		std::vector<Kiwi::Entity*> matches;

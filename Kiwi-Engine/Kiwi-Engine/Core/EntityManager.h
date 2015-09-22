@@ -9,15 +9,26 @@
 
 namespace Kiwi
 {
-	
-	class Entity;
+
+	class Renderer;
 
 	class EntityManager
 	{
+	private:
+
+		struct LightMap
+		{
+			//stores the name of a render target, and a vector of light entities bound to the render target
+			std::unordered_map<std::wstring, std::vector<Kiwi::Entity*>> map;
+		};
+
 	protected:
 
 		/*stores the active entities (these are updated every frame)*/
 		std::unordered_map<std::wstring, Kiwi::Entity*> m_entities;
+
+		//stores all of the lights active in the scene
+		LightMap m_lights;
 
 	public:
 
@@ -29,13 +40,13 @@ namespace Kiwi
 
 		void AddEntity(Kiwi::Entity* entity);
 
-		void DeleteEntity(Kiwi::Entity* entity);
-		void DeleteEntityWithName(std::wstring name);
-		void DeleteAllEntities();
-		void DeleteAllInactiveEntities();
+		void Destroy(Kiwi::Entity* entity);
+		void DestroyWithName(std::wstring name);
+		void DestroyAll();
+		void DestroyInactive();
 
-		Kiwi::Entity* FindEntityWithName(std::wstring name);
-		std::vector<Kiwi::Entity*> FindEntitiesWithTag(std::wstring tag);
+		Kiwi::Entity* FindWithName(std::wstring name);
+		std::vector<Kiwi::Entity*> FindAllWithTag(std::wstring tag);
 
 	};
 };

@@ -10,12 +10,12 @@ namespace Kiwi
 		{
 			case Kiwi::FrameEvent::EventType::UNTIMED_EVENT:
 				{
-					this->OnUpdate( evt.GetSource() );
+					this->OnUpdate( evt );
 					break;
 				}
 			case Kiwi::FrameEvent::EventType::TIMED_EVENT:
 				{
-					this->OnFixedUpdate( evt.GetSource() );
+					this->OnFixedUpdate( evt );
 					break;
 				}
 			default: break;

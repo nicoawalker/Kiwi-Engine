@@ -32,14 +32,14 @@ namespace Kiwi
 			
 			//create a default rendertarget for the back buffer
 			Kiwi::BackBuffer* bb = m_d3dInterface->GetBackBuffer();
-			m_backBuffer = new Kiwi::RenderTarget( L"Back Buffer", this, bb->texture, bb->renderTargetView );
+			m_backBuffer = new Kiwi::RenderTarget( L"BackBuffer", this, bb->texture, bb->renderTargetView );
 
 			//create the back buffer's depth stencil
-			Kiwi::DepthStencil* bbDepth = new Kiwi::DepthStencil( L"Back Buffer Depth", bb->depthBuffer, bb->depthStencilView, bb->depthStencilState );
+			Kiwi::DepthStencil* bbDepth = new Kiwi::DepthStencil( L"BackBuffer_Depth", bb->depthBuffer, bb->depthStencilView, bb->depthStencilState );
 			m_backBuffer->AttachDepthStencil(bbDepth);
 
 			//create a default viewport for the back buffer
-			m_backBuffer->CreateViewport( L"Back Buffer Viewport", 0 );
+			m_backBuffer->CreateViewport( L"BackBuffer_Viewport", 0 );
 
 			m_activeRenderTarget = m_backBuffer;
 

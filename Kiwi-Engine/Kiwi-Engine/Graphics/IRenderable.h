@@ -14,13 +14,13 @@ namespace Kiwi
 	class Renderer;
 	class Scene;
 	class Entity;
-	//class IShaderEffect;
+	class IShaderEffect;
 
 	class IRenderable
 	{
 	public:
 
-		enum RENDER_TYPE { RENDERABLE_2D = 0, RENDERABLE_3D = 1 };
+		enum RenderType { RENDER_2D = 0, RENDER_3D = 1 };
 
 	protected:
 
@@ -28,19 +28,19 @@ namespace Kiwi
 
 		Kiwi::Mesh m_mesh;
 
-		//Kiwi::IShaderEffect m_shaderEffect;
+		Kiwi::IShaderEffect* m_shaderEffect;
 
 		std::wstring m_renderableName;
 		std::wstring m_renderTarget;
 
-		RENDER_TYPE m_renderType;
+		RenderType m_renderType;
 
 		//stores in the index value of the mesh subset returned from the GetCurrentMeshSubset function
 		unsigned int m_currentMeshSubset;
 
 	public:
 
-		IRenderable( std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh );
+		IRenderable( std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, Kiwi::IShaderEffect* shaderEffect );
 		virtual ~IRenderable();
 
 		/*binds the renderable's mesh to the rendering pipeline*/
@@ -60,10 +60,10 @@ namespace Kiwi
 		
 		virtual std::wstring GetName()const { return m_renderableName; }
 		virtual Kiwi::Mesh& GetMesh() { return m_mesh; }
-		virtual RENDER_TYPE GetRenderType()const { return m_renderType; }
+		virtual IRenderable::RenderType GetRenderType()const { return m_renderType; }
 		virtual std::wstring GetRenderTarget()const { return m_renderTarget; }
 		virtual Kiwi::Entity* GetParentEntity()const { return m_parentEntity; }
-		//virtual const Kiwi::IShaderEffect& GetEffect()const { return m_shaderEffect; }
+		virtual Kiwi::IShaderEffect* GetEffect() { return m_shaderEffect; }
 
 	};
 };

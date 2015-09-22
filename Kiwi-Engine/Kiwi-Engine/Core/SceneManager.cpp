@@ -44,7 +44,7 @@ namespace Kiwi
 
 			Kiwi::Renderer* renderer = m_engine->GetGraphicsManager()->FindRendererWithName( rendererName );
 
-			scene = new Kiwi::Scene( name, renderer );
+			scene = new Kiwi::Scene( m_engine, name, renderer );
 
 			m_scenes[name] = scene;
 

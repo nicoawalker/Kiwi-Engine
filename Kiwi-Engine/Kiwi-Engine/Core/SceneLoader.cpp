@@ -23,22 +23,18 @@ namespace Kiwi
 	SceneLoader::SceneLoader( Kiwi::Scene* scene )
 	{
 
-		if( !scene ) { throw Kiwi::Exception( L"SceneLoader", L"Invalid scene" ); }
-
-		try
-		{
-			m_scene = scene;
-
-			m_totalQueuedAssets = 0;
-			m_totalSizeInBytes = 0;
-			m_numAssetsLoaded = 0;
-			m_loadedSizeInBytes = 0;
-			m_isLoading = false;
-
-		} catch( ... )
-		{
-			throw;
+		if( !scene ) 
+		{ 
+			throw Kiwi::Exception( L"SceneLoader", L"Invalid scene" ); 
 		}
+
+		m_scene = scene;
+
+		m_totalQueuedAssets = 0;
+		m_totalSizeInBytes = 0;
+		m_numAssetsLoaded = 0;
+		m_loadedSizeInBytes = 0;
+		m_isLoading = false;
 
 	}
 

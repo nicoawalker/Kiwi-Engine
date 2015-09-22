@@ -16,7 +16,13 @@ namespace Kiwi
 
 	class Entity
 	{
+	public:
+
+		enum EntityType { ENTITY_3D, ENTITY_2D, ENTITY_LIGHT, ENTITY_SOUND };
+
 	protected:
+
+		EntityType m_entityType;
 
 		Kiwi::Scene* m_scene;
 
@@ -76,6 +82,7 @@ namespace Kiwi
 
 		virtual Kiwi::IRenderable* GetRenderable()const { return m_renderable; }
 		virtual Kiwi::Transform* GetTransform() { return &m_transform; }
+		virtual Entity::EntityType GetType()const { return m_entityType; }
 		virtual Kiwi::Scene* GetScene()const { return m_scene; }
 		virtual std::wstring GetName()const { return m_name; }
 		virtual bool IsActive()const { return m_isActive; }

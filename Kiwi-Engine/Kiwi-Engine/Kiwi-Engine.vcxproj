@@ -180,6 +180,7 @@
     <ClCompile Include="Graphics\PointLight.cpp" />
     <ClCompile Include="Graphics\RasterState.cpp" />
     <ClCompile Include="Graphics\RasterStateManager.cpp" />
+    <ClCompile Include="Graphics\RenderableManager.cpp" />
     <ClCompile Include="Graphics\Renderer.cpp" />
     <ClCompile Include="Graphics\RenderTarget.cpp" />
     <ClCompile Include="Graphics\RenderTargetManager.cpp" />
@@ -237,6 +238,7 @@
     <ClInclude Include="Graphics\PointLight.h" />
     <ClInclude Include="Graphics\RasterState.h" />
     <ClInclude Include="Graphics\RasterStateManager.h" />
+    <ClInclude Include="Graphics\RenderableManager.h" />
     <ClInclude Include="Graphics\Renderer.h" />
     <ClInclude Include="Graphics\RenderTarget.h" />
     <ClInclude Include="Graphics\RenderTargetManager.h" />

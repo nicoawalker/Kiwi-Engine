@@ -8,7 +8,7 @@
 namespace Kiwi
 {
 
-	IRenderable::IRenderable(std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh):
+	IRenderable::IRenderable(std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, Kiwi::IShaderEffect* effect ):
 		m_mesh(mesh)
 	{
 
@@ -19,8 +19,8 @@ namespace Kiwi
 
 		m_parentEntity = parentEntity;
 		m_renderableName = name;
-		//m_shaderEffect = 0;
-		m_renderType = RENDERABLE_3D;
+		m_shaderEffect = effect;
+		m_renderType = RENDER_3D;
 		m_renderTarget = L"BackBuffer";
 		m_currentMeshSubset = 0;
 

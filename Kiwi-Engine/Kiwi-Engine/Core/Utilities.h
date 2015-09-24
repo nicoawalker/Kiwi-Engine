@@ -18,6 +18,9 @@ namespace Kiwi
 	//takes the hresult error from a D3D call and converts it to a string representation
 	std::wstring GetD3DErrorString(HRESULT hr);
 
+	/*returns a string containing the hex representation of the hresult*/
+	std::wstring HRToHexString( HRESULT hr );
+
 	template<typename T>
 	std::wstring ToWString(T input)
 	{

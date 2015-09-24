@@ -13,6 +13,7 @@ namespace Kiwi
 
 	class WindowEvent;
 	class Renderer;
+	class RawInputWrapper;
 
 	class RenderWindow :
 		public Kiwi::WindowEventBroadcaster
@@ -28,6 +29,8 @@ namespace Kiwi
 		Kiwi::Vector2 m_position;
 		Kiwi::Vector2 m_dimensions;
 
+		RawInputWrapper* m_inputDevice;
+
 		bool m_vsyncEnabled;
 		bool m_isVisible;
 		bool m_isFullscreen;
@@ -39,6 +42,8 @@ namespace Kiwi
 		virtual ~RenderWindow();
 
 		LRESULT HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+
+		void Update();
 
 		bool Show(int cmdShow);
 
@@ -53,6 +58,7 @@ namespace Kiwi
 		bool GetVSyncEnabled()const { return m_vsyncEnabled; }
 		HWND GetHandle()const { return m_hwnd; }
 		HINSTANCE GetInstance()const { return m_hInst; }
+		RawInputWrapper* GetInput()const { return m_inputDevice; }
 		Kiwi::Vector2 GetPosition();
 		Kiwi::Vector2 GetWindowSize();
 		Kiwi::Vector2 GetClientSize();

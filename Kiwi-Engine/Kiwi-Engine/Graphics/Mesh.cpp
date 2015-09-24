@@ -172,7 +172,15 @@ namespace Kiwi
 	void Mesh::Bind( Kiwi::Renderer* renderer )
 	{
 
-		if( renderer == 0 || m_vertexBuffer == 0 || m_indexBuffer == 0 ) return;
+		if( renderer == 0 )
+		{
+			throw Kiwi::Exception( L"Mesh::Bind", L"[" + m_name + L"] Invalid Renderer" );
+		}
+
+		if( m_vertexBuffer == 0 || m_indexBuffer == 0 )
+		{
+			throw Kiwi::Exception( L"Mesh::Bind", L"[" + m_name + L"] Mesh buffers invalid" );
+		}
 
 		unsigned int stride = sizeof( ShaderVertex );
 		unsigned int offset = 0;

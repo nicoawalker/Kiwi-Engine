@@ -4,6 +4,7 @@
 #include "BlendStateManager.h"
 #include "Viewport.h"
 #include "DirectX.h"
+#include "Color.h"
 
 #include "../Core/Vector2.h"
 
@@ -40,6 +41,9 @@ namespace Kiwi
 		//this state will be set in the renderer at the time the render target is bound
 		Kiwi::BlendState* m_activeBlendState;
 
+		//stores the color the render target will be cleared with
+		Kiwi::Color m_clearColor;
+
 		unsigned int m_priorityLevel;
 
 	public:
@@ -61,6 +65,8 @@ namespace Kiwi
 		/*sets the active blend state for the render target*/
 		void SetBlendState( std::wstring blendStateName );
 
+		void SetClearColor( const Kiwi::Color& clearColor ) { m_clearColor = clearColor; }
+
 		/*creates and adds a viewport to this render target
 		the position and dimension parameters are relative to the size of the render target (between 0-1)*/
 		virtual Kiwi::Viewport* CreateViewport( std::wstring name, Kiwi::Camera* camera, const Kiwi::Vector2& position = Kiwi::Vector2(0.0f, 0.0f), const Kiwi::Vector2& dimensions = Kiwi::Vector2(1.0f, 1.0f), float minDepth = 0.0f, float maxDepth = 1.0f );
@@ -72,6 +78,7 @@ namespace Kiwi
 		//Kiwi::Scene* GetScene()const { return m_scene; }
 		std::wstring GetName()const { return m_name; }
 		const Kiwi::Vector2& GetDimensions()const { return m_dimensions; }
+		const Kiwi::Color& GetClearColor()const { return m_clearColor; }
 		Kiwi::Viewport* GetViewport(unsigned int index);
 
 		unsigned int GetViewportCount() { return (unsigned int)m_viewports.size(); }

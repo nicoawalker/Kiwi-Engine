@@ -8,12 +8,9 @@ namespace Kiwi
 
 	Kiwi::Logger _Logger;
 
-	EngineRoot::EngineRoot() :
+	EngineRoot::EngineRoot():
 		m_sceneManager( this )
 	{
-
-		_Logger.Initialize( L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Logs\\debug.txt" );
-
 	}
 
 	EngineRoot::~EngineRoot()
@@ -30,6 +27,8 @@ namespace Kiwi
 		while( m_engineRunning )
 		{
 			this->_PumpMessages();
+
+			if( m_gameWindow ) m_gameWindow->Update();
 
 			//broadcast a new untimed frame event
 			Kiwi::FrameEvent untimedFrameEvent( this, Kiwi::FrameEvent::EventType::UNTIMED_EVENT );
@@ -57,8 +56,14 @@ namespace Kiwi
 
 	}
 
-	void EngineRoot::Start()
+	void EngineRoot::Start( std::wstring logFile, Kiwi::RenderWindow* gameWindow )
 	{
+
+		assert( gameWindow != 0 );
+
+		m_gameWindow = gameWindow;
+
+		_Logger.Initialize( logFile );
 
 		this->_MainLoop();
 

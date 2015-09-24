@@ -3,6 +3,7 @@
 
 #include "DirectX.h"
 #include "RasterStateManager.h"
+#include "Color.h"
 
 #include "../Core/Vector2.h"
 #include "../Core/Vector4.h"
@@ -68,9 +69,11 @@ namespace Kiwi
 		//Kiwi::RenderTarget* CreateRenderTarget(std::wstring name, const Kiwi::Vector2& dimensions, ID3D11Texture2D* texture = 0);
 
 		/*clears the currently active render target, including its depth buffer*/
-		void ClearRenderTarget(const Kiwi::Vector4& color);
+		void ClearRenderTarget();
+		/*clears the currently active render target, including its depth buffer with the given color*/
+		void ClearRenderTarget(const Kiwi::Color& color);
 		/*clears the passed render target, including its depth buffer*/
-		void ClearRenderTarget(Kiwi::RenderTarget* rt, const Kiwi::Vector4& color);
+		void ClearRenderTarget( Kiwi::RenderTarget* rt );
 
 		Kiwi::RasterState* CreateRasterState( std::wstring name, const Kiwi::D3DRasterStateDesc& desc );
 

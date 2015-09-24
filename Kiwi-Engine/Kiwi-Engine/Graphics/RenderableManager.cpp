@@ -31,7 +31,7 @@ namespace Kiwi
 				{
 
 					Kiwi::IShaderEffect* effect = renderable->GetEffect();
-					Kiwi::Mesh* mesh = &renderable->GetMesh();
+					Kiwi::Mesh* mesh = renderable->GetMesh();
 					if( effect != 0 && mesh != 0 )
 					{
 
@@ -55,7 +55,7 @@ namespace Kiwi
 				{
 
 					Kiwi::IShaderEffect* effect = renderable->GetEffect();
-					Kiwi::Mesh* mesh = &renderable->GetMesh();
+					Kiwi::Mesh* mesh = renderable->GetMesh();
 					if( effect != 0 && mesh != 0 )
 					{
 

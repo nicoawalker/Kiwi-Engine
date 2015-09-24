@@ -155,6 +155,7 @@
     <ClCompile Include="Core\Math.cpp" />
     <ClCompile Include="Core\Matrix4.cpp" />
     <ClCompile Include="Core\Quaternion.cpp" />
+    <ClCompile Include="Core\RawInputWrapper.cpp" />
     <ClCompile Include="Core\Scene.cpp" />
     <ClCompile Include="Core\SceneLoader.cpp" />
     <ClCompile Include="Core\SceneManager.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\Matrix4.h" />
     <ClInclude Include="Core\Quaternion.h" />
+    <ClInclude Include="Core\RawInputWrapper.h" />
     <ClInclude Include="Core\Scene.h" />
     <ClInclude Include="Core\SceneLoader.h" />
     <ClInclude Include="Core\SceneManager.h" />

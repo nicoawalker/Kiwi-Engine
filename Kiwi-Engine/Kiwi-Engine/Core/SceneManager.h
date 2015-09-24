@@ -1,6 +1,8 @@
 #ifndef _KIWI_SCENEMANAGER_H_
 #define _KIWI_SCENEMANAGER_H_
 
+#include "IFrameEventListener.h"
+
 #include <string>
 #include <unordered_map>
 
@@ -13,7 +15,8 @@ namespace Kiwi
 	class EngineRoot;
 	class GraphicsCore;
 
-	class SceneManager
+	class SceneManager:
+		public Kiwi::IFrameEventListener
 	{
 	protected:
 
@@ -29,6 +32,11 @@ namespace Kiwi
 		virtual ~SceneManager();
 
 		Kiwi::Scene* CreateScene( std::wstring name, std::wstring rendererName );
+
+		Kiwi::Scene* FindSceneWithName( std::wstring name );
+
+		virtual void OnUpdate( const Kiwi::FrameEvent& evt );
+		virtual void OnFixedUpdate( const Kiwi::FrameEvent& evt );
 
 	};
 };

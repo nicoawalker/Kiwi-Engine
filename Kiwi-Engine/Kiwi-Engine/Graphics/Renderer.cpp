@@ -159,15 +159,26 @@ namespace Kiwi
 
 	//}
 
+	void Renderer::ClearRenderTarget()
+	{
+
+		assert( m_d3dInterface != 0 );
+
+		if( m_activeRenderTarget == 0 ) return;
+
+		this->ClearRenderTarget( m_activeRenderTarget->GetClearColor() );
+
+	}
+
 	/*clears the currently active render target, including its depth stencil*/
-	void Renderer::ClearRenderTarget(const Kiwi::Vector4& color)
+	void Renderer::ClearRenderTarget(const Kiwi::Color& color)
 	{
 
 		assert( m_d3dInterface != 0 );
 
 		if(m_activeRenderTarget == 0) return;
 
-		float col[4] = { color.x, color.y, color.z, color.w };
+		float col[4] = { color.red, color.green, color.blue, color.alpha };
 
 		m_d3dInterface->GetDeviceContext()->ClearRenderTargetView(m_activeRenderTarget->GetView(), col);
 
@@ -180,14 +191,15 @@ namespace Kiwi
 	}
 
 	/*clears the passed render target as well as its depth stencil*/
-	void Renderer::ClearRenderTarget(Kiwi::RenderTarget* rt, const Kiwi::Vector4& color)
+	void Renderer::ClearRenderTarget( Kiwi::RenderTarget* rt )
 	{
 
 		assert( m_d3dInterface != 0 );
 
 		if(rt == 0) return;
 
-		float col[4] = { color.x, color.y, color.z, color.w };
+		Kiwi::Color color = rt->GetClearColor();
+		float col[4] = { color.red, color.green, color.blue, color.alpha };
 
 		m_d3dInterface->GetDeviceContext()->ClearRenderTargetView(rt->GetView(), col);
 

@@ -3,6 +3,7 @@
 #include "WindowEvent.h"
 
 #include "..\Core\Exception.h"
+#include "..\Core\RawInputWrapper.h"
 
 namespace Kiwi
 {
@@ -51,6 +52,9 @@ namespace Kiwi
 			throw Kiwi::Exception( L"RenderWindow::Intialize", L"["+windowName+L"] Call to CreateWindowEx failed" );
 		}
 
+		//initialize raw input for this window
+		m_inputDevice = new Kiwi::RawInputWrapper( this );
+
 		m_position.Set( (float)x, (float)y );
 		m_dimensions.Set( (float)width, (float)height );
 
@@ -97,26 +101,27 @@ namespace Kiwi
 	LRESULT RenderWindow::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 
+		switch( msg )
+		{
+			case WM_INPUT:
+				{
+					if( m_inputDevice ) m_inputDevice->ProcessInput( wParam, lParam );
+
+					break;
+				}
+		}
+
 		//send this event to the listeners
 		if(this) this->BroadcastEvent(Kiwi::WindowEvent(this, msg));
 
 		return DefWindowProc(m_hwnd, msg, wParam, lParam);
+	}
 
-		//switch(msg)
-		//{
+	void RenderWindow::Update()
+	{
 
-		//case WM_DESTROY: //when the window is closed
-		//	{
-		//		//send this event to the listeners
-		//		this->BroadcastEvent(Kiwi::WindowEvent(this, msg));
+		if( m_inputDevice ) m_inputDevice->Update();
 
-		//		return 0;
-		//	}
-		//default:
-		//	return DefWindowProc(m_hwnd, msg, wParam, lParam);
-		//}
-
-		//return true;
 	}
 
 	Kiwi::Vector2 RenderWindow::GetPosition()

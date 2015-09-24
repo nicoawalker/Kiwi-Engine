@@ -20,6 +20,9 @@ namespace Kiwi
 		//class used to create and manage graphical components (e.g. renderer, renderWindow...)
 		Kiwi::GraphicsManager m_graphicsManager;
 
+		//stores a pointer to the main game window
+		Kiwi::RenderWindow* m_gameWindow;
+
 		bool m_engineRunning;
 
 	protected:
@@ -32,10 +35,15 @@ namespace Kiwi
 		EngineRoot();
 		~EngineRoot();
 
-		void Start();
+		void Start( std::wstring logFile, Kiwi::RenderWindow* gameWindow );
 		void Pause() {}
 		void Stop();
 
+		void SetGameWindow( Kiwi::RenderWindow* window ) { if( window ) m_gameWindow = window; }
+
+
+
+		Kiwi::RenderWindow* GetGameWindow()const { return m_gameWindow; }
 		Kiwi::SceneManager* GetSceneManager() { return &m_sceneManager; }
 		Kiwi::GraphicsManager* GetGraphicsManager() { return &m_graphicsManager; }
 

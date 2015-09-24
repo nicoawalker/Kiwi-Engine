@@ -23,6 +23,17 @@ namespace Kiwi
 		return wstr;
 	}
 
+	std::wstring HRToHexString( HRESULT hr )
+	{
+
+		std::wstringstream wStr;
+
+		wStr << std::hex << hr;
+
+		return wStr.str();
+
+	}
+
 	//takes the hresult error from a D3D call and converts it to a string representation
 	std::wstring GetD3DErrorString(HRESULT hr)
 	{

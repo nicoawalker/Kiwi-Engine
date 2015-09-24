@@ -11,6 +11,7 @@ namespace Kiwi
 	Logger::Logger()
 	{
 		m_shutdownThread = false;
+		m_initialized = false;
 	}
 
 	Logger::~Logger()
@@ -25,6 +26,8 @@ namespace Kiwi
 		m_outputThread = std::thread(&Logger::_OutputThread, this, logFile);
 
 		m_filename = logFile;
+
+		m_initialized = true;
 
 	}
 

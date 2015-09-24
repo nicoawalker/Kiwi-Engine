@@ -29,8 +29,7 @@ namespace Kiwi
 	class RenderTarget;
 
 	class Scene :
-		public Kiwi::IThreadSafe,
-		public Kiwi::IFrameEventListener
+		public Kiwi::IThreadSafe
 	{
 	protected:
 
@@ -59,6 +58,9 @@ namespace Kiwi
 		Scene( Kiwi::EngineRoot* engine, std::wstring name, Kiwi::Renderer* renderer);
 		virtual ~Scene();
 
+		virtual void Update();
+		virtual void FixedUpdate() {}
+
 		virtual void Load();
 
 		virtual void Render();
@@ -66,6 +68,7 @@ namespace Kiwi
 		virtual void AddEntity( Kiwi::Entity* entity );
 		virtual void AddAsset( Kiwi::IAsset* asset );
 		virtual void AddShader( Kiwi::IShader* shader );
+		//virtual void AddCamera( Kiwi::Camera* camera );
 
 		Kiwi::Renderer* GetRenderer()const { return m_renderer; }
 
@@ -80,9 +83,6 @@ namespace Kiwi
 		AssetType* FindAssetWithName( std::wstring name );
 
 		Kiwi::RenderTarget* FindRenderTargetWithName( std::wstring name );
-
-		virtual void OnUpdate( const Kiwi::FrameEvent& evt ) { this->Render(); }
-		virtual void OnFixedUpdate( const Kiwi::FrameEvent& evt ) {}
 
 	};
 

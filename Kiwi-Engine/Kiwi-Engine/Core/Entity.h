@@ -80,6 +80,8 @@ namespace Kiwi
 		/*attaches this entity to the target parent entity*/
 		virtual void SetParent(Kiwi::Entity* parent);
 
+		virtual void SetActive( bool active ) { m_isActive = active; }
+
 		virtual Kiwi::IRenderable* GetRenderable()const { return m_renderable; }
 		virtual Kiwi::Transform* GetTransform() { return &m_transform; }
 		virtual Entity::EntityType GetType()const { return m_entityType; }

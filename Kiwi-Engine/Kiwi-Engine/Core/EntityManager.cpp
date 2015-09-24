@@ -25,13 +25,11 @@ namespace Kiwi
 	void EntityManager::Update()
 	{
 
-		auto it = m_entities.begin();
-		for(; it != m_entities.end();)
+		for( auto entity : m_entities )
 		{
-			if(it->second->IsActive())
+			if( entity.second->IsActive() )
 			{
-				it->second->Update();
-				it++;
+				entity.second->Update();
 			}
 		}
 
@@ -44,7 +42,7 @@ namespace Kiwi
 		{
 			if(entity.second->IsActive())
 			{
-				entity.second->Update();
+				entity.second->FixedUpdate();
 			}
 		}
 

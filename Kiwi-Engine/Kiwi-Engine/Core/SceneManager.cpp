@@ -21,11 +21,15 @@ namespace Kiwi
 			throw Kiwi::Exception( L"SceneManager", L"Invalid engine pointer" ); 
 		}
 
+		m_engine->AddListener( this );
+
 	}
 
 	SceneManager::~SceneManager()
 	{
 		
+		if( m_engine ) m_engine->RemoveListener( this );
+
 		auto it = m_scenes.begin();
 		for(; it != m_scenes.end(); )
 		{
@@ -53,6 +57,41 @@ namespace Kiwi
 		}catch(...)
 		{
 			throw;
+		}
+
+	}
+
+	Kiwi::Scene* SceneManager::FindSceneWithName( std::wstring name )
+	{
+
+		auto sceneItr = m_scenes.find( name );
+		if( sceneItr != m_scenes.end() )
+		{
+			return sceneItr->second;
+		}
+
+		return 0;
+
+	}
+
+	void SceneManager::OnUpdate( const Kiwi::FrameEvent& evt )
+	{
+
+		auto sceneItr = m_scenes.begin();
+		for( ; sceneItr != m_scenes.end(); sceneItr++ )
+		{
+			sceneItr->second->Update();
+		}
+
+	}
+
+	void SceneManager::OnFixedUpdate( const Kiwi::FrameEvent& evt )
+	{
+
+		auto sceneItr = m_scenes.begin();
+		for( ; sceneItr != m_scenes.end(); sceneItr++ )
+		{
+			sceneItr->second->FixedUpdate();
 		}
 
 	}

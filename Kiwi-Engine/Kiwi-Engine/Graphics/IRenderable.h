@@ -59,7 +59,7 @@ namespace Kiwi
 		virtual Kiwi::Mesh::Subset* GetCurrentMeshSubset();
 		
 		virtual std::wstring GetName()const { return m_renderableName; }
-		virtual Kiwi::Mesh& GetMesh() { return m_mesh; }
+		virtual Kiwi::Mesh* GetMesh() { return &m_mesh; }
 		virtual IRenderable::RenderType GetRenderType()const { return m_renderType; }
 		virtual std::wstring GetRenderTarget()const { return m_renderTarget; }
 		virtual Kiwi::Entity* GetParentEntity()const { return m_parentEntity; }

@@ -28,6 +28,8 @@ namespace Kiwi
 		//when true the thread will end after it has finished writing its output
 		bool m_shutdownThread;
 
+		bool m_initialized;
+
 	private:
 
 		void _OutputThread(std::wstring outputFile);
@@ -48,6 +50,8 @@ namespace Kiwi
 	template<typename T> 
 	void Logger::Log(const T& output)
 	{
+
+		if( !m_initialized ) return;
 
 		std::lock_guard<std::mutex> guard(m_outputStrings_mutex);
 

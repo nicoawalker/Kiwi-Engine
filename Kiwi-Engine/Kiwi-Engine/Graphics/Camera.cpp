@@ -19,7 +19,7 @@ namespace Kiwi
 
 		m_projMatrix = Kiwi::Matrix4::Projection( m_fov, m_aspectRatio, m_nearClipDistance, m_farClipDistance );
 
-		m_orthoMatrix = Kiwi::Matrix4::Orthographic( 800, 600, m_nearClipDistance, m_farClipDistance );
+		m_orthoMatrix = Kiwi::Matrix4::Orthographic( 1280.0f, 720.0f, m_nearClipDistance, m_farClipDistance );
 
 		//setup 2d view matrix
 		m_viewMatrix2D.a1 = 1.0f;
@@ -46,7 +46,7 @@ namespace Kiwi
 
 		m_projMatrix = Kiwi::Matrix4::Projection( m_fov, m_aspectRatio, m_nearClipDistance, m_farClipDistance );
 
-		m_orthoMatrix = Kiwi::Matrix4::Orthographic( 800, 600, m_nearClipDistance, m_farClipDistance );
+		m_orthoMatrix = Kiwi::Matrix4::Orthographic( 1280.0f, 720.0f, m_nearClipDistance, m_farClipDistance );
 
 		//setup 2d view matrix
 		m_viewMatrix2D.a1 = 1.0f;

@@ -147,6 +147,8 @@
     <ClCompile Include="Core\Entity.cpp" />
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Exception.cpp" />
+    <ClCompile Include="Core\GameTimer.cpp" />
+    <ClCompile Include="Core\HighResolutionTimer.cpp" />
     <ClCompile Include="Core\IAsset.cpp" />
     <ClCompile Include="Core\IEngineApp.cpp" />
     <ClCompile Include="Core\IFrameEventListener.cpp" />
@@ -202,6 +204,8 @@
     <ClInclude Include="Core\Exception.h" />
     <ClInclude Include="Core\FrameEvent.h" />
     <ClInclude Include="Core\FrameEventBroadcaster.h" />
+    <ClInclude Include="Core\GameTimer.h" />
+    <ClInclude Include="Core\HighResolutionTimer.h" />
     <ClInclude Include="Core\IAsset.h" />
     <ClInclude Include="Core\IEngineApp.h" />
     <ClInclude Include="Core\IFrameEventListener.h" />

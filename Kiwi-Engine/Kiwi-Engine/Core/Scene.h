@@ -46,6 +46,9 @@ namespace Kiwi
 
 		Kiwi::SceneLoader* m_sceneLoader;
 
+		//stores the player's entity for easy retrieval
+		Kiwi::Entity* m_playerEntity;
+
 		//contains all of the scene's shaders, sorted by name
 		Kiwi::ComponentContainer<std::wstring, Kiwi::IShader> m_shaderContainer;
 
@@ -59,7 +62,7 @@ namespace Kiwi
 		virtual ~Scene();
 
 		virtual void Update();
-		virtual void FixedUpdate() {}
+		virtual void FixedUpdate();
 
 		virtual void Load();
 
@@ -70,11 +73,15 @@ namespace Kiwi
 		virtual void AddShader( Kiwi::IShader* shader );
 		//virtual void AddCamera( Kiwi::Camera* camera );
 
+		void SetPlayerEntity( Kiwi::Entity* playerEntity );
+
 		Kiwi::Renderer* GetRenderer()const { return m_renderer; }
 
 		const Kiwi::Vector4& GetDiffuseLight()const { return m_diffuseLight; }
 		const Kiwi::Vector4& GetDiffuseLightDirection()const { return m_diffuseDirection; }
 		const Kiwi::Vector4& GetAmbientLight()const { return m_ambientLight; }
+
+		Kiwi::Entity* GetPlayerEntity()const { return m_playerEntity; }
 
 		virtual Kiwi::Entity* FindEntityWithName( std::wstring name );
 		virtual std::vector<Kiwi::Entity*> FindEntitiesWithTag( std::wstring tag );

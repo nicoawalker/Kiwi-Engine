@@ -1,5 +1,5 @@
 #include "IRenderable.h"
-//#include "IShaderEffect.h"
+#include "IShaderEffect.h"
 
 #include "../Core/Exception.h"
 #include "../Core/Utilities.h"
@@ -7,6 +7,25 @@
 
 namespace Kiwi
 {
+
+	IRenderable::IRenderable( std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, std::wstring shader ) :
+		m_mesh( mesh )
+	{
+
+		if( parentEntity == 0 )
+		{
+			throw Kiwi::Exception( L"IRenderable", L"[" + name + L"] Renderable initialized with no parent entity" );
+		}
+
+		m_parentEntity = parentEntity;
+		m_renderableName = name;
+		m_shaderEffect = 0;
+		m_renderType = RENDER_3D;
+		m_renderTarget = L"BackBuffer";
+		m_currentMeshSubset = 0;
+		m_shader = shader;
+
+	}
 
 	IRenderable::IRenderable(std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, Kiwi::IShaderEffect* effect ):
 		m_mesh(mesh)
@@ -20,6 +39,7 @@ namespace Kiwi
 		m_parentEntity = parentEntity;
 		m_renderableName = name;
 		m_shaderEffect = effect;
+		if( m_shaderEffect ) m_shader = m_shaderEffect->GetShaderName();
 		m_renderType = RENDER_3D;
 		m_renderTarget = L"BackBuffer";
 		m_currentMeshSubset = 0;

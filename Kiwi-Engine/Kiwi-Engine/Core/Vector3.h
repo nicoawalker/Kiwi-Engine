@@ -57,6 +57,9 @@ namespace Kiwi
 		//divides each term of this vector by the amount and returns the result
 		Kiwi::Vector3 operator/ (float amount)const;
 
+		/*returns the result of multiplying this vector by a scalar*/
+		Kiwi::Vector3 operator* ( float scalar )const;
+
 		static Kiwi::Vector3 forward() { return Kiwi::Vector3(0.0f, 0.0f, 1.0f); }
 		static Kiwi::Vector3 up() { return Kiwi::Vector3(0.0f, 1.0f, 0.0f); }
 		static Kiwi::Vector3 right() { return Kiwi::Vector3(1.0f, 0.0f, 0.0f); }

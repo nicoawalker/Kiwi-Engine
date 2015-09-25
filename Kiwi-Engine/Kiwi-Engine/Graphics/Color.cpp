@@ -14,7 +14,7 @@ namespace Kiwi
 
 	}
 
-	Color::Color(float a, float g, float b, float r)
+	Color::Color(float r, float g, float b, float a)
 	{
 
 		this->alpha = a;

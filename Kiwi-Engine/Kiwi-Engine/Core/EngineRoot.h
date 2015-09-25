@@ -3,6 +3,7 @@
 
 #include "FrameEventBroadcaster.h"
 #include "SceneManager.h"
+#include "GameTimer.h"
 
 #include "../Graphics/GraphicsManager.h"
 
@@ -23,6 +24,8 @@ namespace Kiwi
 		//stores a pointer to the main game window
 		Kiwi::RenderWindow* m_gameWindow;
 
+		Kiwi::GameTimer m_gameTimer;
+
 		bool m_engineRunning;
 
 	protected:
@@ -41,7 +44,7 @@ namespace Kiwi
 
 		void SetGameWindow( Kiwi::RenderWindow* window ) { if( window ) m_gameWindow = window; }
 
-
+		Kiwi::GameTimer* GetGameTimer() { return &m_gameTimer; }
 
 		Kiwi::RenderWindow* GetGameWindow()const { return m_gameWindow; }
 		Kiwi::SceneManager* GetSceneManager() { return &m_sceneManager; }

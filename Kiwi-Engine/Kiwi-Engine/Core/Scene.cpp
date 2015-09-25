@@ -30,6 +30,7 @@ namespace Kiwi
 		}
 
 		m_sceneLoader = 0;
+		m_playerEntity = 0;
 
 		try
 		{
@@ -68,9 +69,20 @@ namespace Kiwi
 	void Scene::Update()
 	{
 
+		if( m_playerEntity ) m_playerEntity->Update();
+
 		m_entityManager.Update();
 
 		this->Render();
+
+	}
+
+	void Scene::FixedUpdate()
+	{
+
+		if( m_playerEntity ) m_playerEntity->FixedUpdate();
+
+		m_entityManager.FixedUpdate();
 
 	}
 
@@ -254,6 +266,22 @@ namespace Kiwi
 		{
 			m_shaderContainer.Add( shader->GetName(), shader );
 		}
+
+	}
+
+	void Scene::SetPlayerEntity( Kiwi::Entity* playerEntity )
+	{
+
+		if( playerEntity == 0 ) return;
+
+		if( m_playerEntity != 0 )
+		{
+			m_renderableManager.Remove( m_playerEntity->GetRenderable() );
+			m_playerEntity = 0;
+		}
+
+		m_playerEntity = playerEntity;
+		m_renderableManager.AddRenderable( m_playerEntity->GetRenderable() );
 
 	}
 

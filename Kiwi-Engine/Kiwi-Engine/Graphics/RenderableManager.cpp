@@ -30,21 +30,23 @@ namespace Kiwi
 			case IRenderable::RenderType::RENDER_3D:
 				{
 
-					Kiwi::IShaderEffect* effect = renderable->GetEffect();
 					Kiwi::Mesh* mesh = renderable->GetMesh();
-					if( effect != 0 && mesh != 0 )
+
+					std::wstring shader = renderable->GetShader();
+
+					if( mesh != 0 )
 					{
 
-						if( mesh->HasTransparency() == true )
+						if( mesh->HasTransparency() == false || mesh->HasTransparency() == true)
 						{
 							//add the renderable to the list of 3d opaque renderables
 							//sorted by     3D   >>    RenderTarget            >>                Shader            >>          Mesh         >>       No Transparency     >>     renderable
-							m_3DRenderables.rtMap[renderable->GetRenderTarget()].shaderMap[effect->GetShaderName()].meshMap[mesh->GetAssetName()].opaque_renderables.push_back( renderable );
+							m_3DRenderables.rtMap[renderable->GetRenderTarget()].shaderMap[shader].meshMap[mesh->GetAssetName()].opaque_renderables.push_back( renderable );
 						} else
 						{
 							//add the renderable to the list of 3d transparent renderables
 							//sorted by     3D   >>    RenderTarget            >>                Shader            >>          Mesh         >>         Transparency          >>     renderable
-							m_3DRenderables.rtMap[renderable->GetRenderTarget()].shaderMap[effect->GetShaderName()].meshMap[mesh->GetAssetName()].transparent_renderables.push_back( renderable );
+							m_3DRenderables.rtMap[renderable->GetRenderTarget()].shaderMap[shader].meshMap[mesh->GetAssetName()].transparent_renderables.push_back( renderable );
 						}
 
 					}

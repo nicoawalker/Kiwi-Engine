@@ -311,8 +311,12 @@ namespace Kiwi
 
 	//----Static member functions
 
-	Kiwi::Mesh* Mesh::Cube( std::wstring name, Kiwi::Renderer* renderer )
+	/*Kiwi::Mesh* Mesh::Cube( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector3& dimensions )
 	{
+
+		float width = dimensions.x;
+		float height = dimensions.y;
+		float depth = dimensions.z;
 
 		std::vector<Kiwi::Mesh::Vertex> meshVertices = {
 			Kiwi::Mesh::Vertex( -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -0.5f ),
@@ -356,6 +360,63 @@ namespace Kiwi
 		Kiwi::Mesh* cubeMesh = new Kiwi::Mesh( name, L"Cube_Primitive", renderer, meshVertices );
 
 		return cubeMesh;
+
+	}*/
+
+	Kiwi::Mesh* Mesh::Rectangle( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector3& dimensions )
+	{
+
+		float xPos = dimensions.x / 2.0f;
+		float yPos = dimensions.y / 2.0f;
+		float zPos = dimensions.z / 2.0f;
+
+		std::vector<Kiwi::Mesh::Vertex> meshVertices = {
+			Kiwi::Mesh::Vertex( -xPos, yPos, -zPos, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( xPos, yPos, -zPos, 0.5f, 0.0f, 0.0f,  0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos, -zPos, 0.0f, 0.5f,  0.0f,  0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos, -zPos, 0.0f, 0.5f,  0.0f,  0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( xPos,  yPos, -zPos, 0.5f, 0.0f,  0.0f,  0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.5f, 0.5f,  0.0f,  0.0f, -1.0f ),
+
+			Kiwi::Mesh::Vertex( xPos,  yPos, -zPos, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 0.5f, 0.0f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.0f, 0.5f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.0f, 0.5f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 0.5f, 0.0f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos,  zPos, 0.5f, 0.5f,  1.0f,  0.0f,  0.0f ),
+
+			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 0.0f, 0.0f , 0.0f,  0.0f , 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos,  yPos  ,zPos ,0.5f ,0.0f  ,0.0f , 0.0f,  1.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos,  zPos ,0.0f, 0.5f,  0.0f,  0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos,  zPos, 0.0f ,0.5f, 0.0f , 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos,  yPos , zPos ,0.5f ,0.0f , 0.0f , 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos , zPos, 0.5f ,0.5f , 0.0f,  0.0f, 1.0f ),
+
+			Kiwi::Mesh::Vertex( -xPos , yPos  ,zPos, 0.0f ,0.0f ,-1.0f , 0.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos , yPos, -zPos, 0.5f, 0.0f ,-1.0f , 0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos , zPos, 0.0f ,0.5f, -1.0f , 0.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos,  zPos ,0.0f ,0.5f, -1.0f , 0.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos,  yPos, -zPos, 0.5f ,0.0f, -1.0f , 0.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos ,-yPos, -zPos ,0.5f ,0.5f ,-1.0f, 0.0f, 0.0f ),
+
+			Kiwi::Mesh::Vertex( -xPos,  yPos,  zPos ,0.0f, 0.0f , 0.0f,  1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 0.5f, 0.0f , 0.0f,  1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos,  yPos, -zPos, 0.0f, 0.5f,  0.0f , 1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos , yPos ,-zPos, 0.0f ,0.5f,  0.0f , 1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos, yPos , zPos, 0.5f, 0.0f , 0.0f , 1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos  ,yPos, -zPos, 0.5f, 0.5f , 0.0f , 1.0f, 0.0f ),
+
+			Kiwi::Mesh::Vertex( -xPos ,-yPos ,-zPos, 0.0f, 0.0f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos ,-yPos, -zPos, 0.5f, 0.0f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos,  zPos, 0.0f ,0.5f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos ,-yPos,  zPos, 0.0f, 0.5f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.5f, 0.0f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos ,-yPos , zPos, 0.5f, 0.5f,  0.0f, -1.0f, 0.0f )
+		};
+
+		Kiwi::Mesh* rectangle = new Kiwi::Mesh( name, L"", renderer, meshVertices );
+
+		return rectangle;
 
 	}
 

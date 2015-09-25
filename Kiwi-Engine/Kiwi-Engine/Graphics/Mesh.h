@@ -101,7 +101,7 @@ namespace Kiwi
 		Kiwi::IBuffer* GetIndexBuffer();
 
 		/*creates a mesh representing a 1x1x1 cube primitive*/
-		static Kiwi::Mesh* Cube( std::wstring name, Kiwi::Renderer* renderer );
+		static Kiwi::Mesh* Rectangle( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector3& dimensions );
 
 	};
 };

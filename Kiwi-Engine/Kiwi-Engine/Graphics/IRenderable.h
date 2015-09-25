@@ -33,6 +33,8 @@ namespace Kiwi
 		std::wstring m_renderableName;
 		std::wstring m_renderTarget;
 
+		std::wstring m_shader;
+
 		RenderType m_renderType;
 
 		//stores in the index value of the mesh subset returned from the GetCurrentMeshSubset function
@@ -40,6 +42,7 @@ namespace Kiwi
 
 	public:
 
+		IRenderable( std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, std::wstring shader );
 		IRenderable( std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, Kiwi::IShaderEffect* shaderEffect );
 		virtual ~IRenderable();
 
@@ -64,6 +67,7 @@ namespace Kiwi
 		virtual std::wstring GetRenderTarget()const { return m_renderTarget; }
 		virtual Kiwi::Entity* GetParentEntity()const { return m_parentEntity; }
 		virtual Kiwi::IShaderEffect* GetEffect() { return m_shaderEffect; }
+		virtual std::wstring GetShader()const { return m_shader; }
 
 	};
 };

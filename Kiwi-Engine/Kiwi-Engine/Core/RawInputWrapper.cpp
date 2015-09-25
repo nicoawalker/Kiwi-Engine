@@ -14,6 +14,8 @@ namespace Kiwi
 
 		assert( targetWindow != 0 );
 
+		m_wheelDelta = 0;
+
 		RAWINPUTDEVICE Mouse;
 		Mouse.usUsage = 0x02;    // register mouse
 		Mouse.usUsagePage = 0x01;    // top-level mouse

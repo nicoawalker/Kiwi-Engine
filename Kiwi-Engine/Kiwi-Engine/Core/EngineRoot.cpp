@@ -11,6 +11,9 @@ namespace Kiwi
 	EngineRoot::EngineRoot():
 		m_sceneManager( this )
 	{
+
+		m_gameTimer.SetTargetUpdatesPerSecond( 60 );
+
 	}
 
 	EngineRoot::~EngineRoot()
@@ -23,16 +26,27 @@ namespace Kiwi
 	void EngineRoot::_MainLoop()
 	{
 
+		m_gameTimer.StartTimer();
+
 		m_engineRunning = true;
 		while( m_engineRunning )
 		{
+			m_gameTimer.Update();
+
 			this->_PumpMessages();
 
 			if( m_gameWindow ) m_gameWindow->Update();
 
+			//if enough time has passed, send a fixed update
+			if( m_gameTimer.QueryFixedUpdate() )
+			{
+				this->BroadcastEvent( Kiwi::FrameEvent( this, Kiwi::FrameEvent::EventType::TIMED_EVENT ) );
+			}
+
 			//broadcast a new untimed frame event
-			Kiwi::FrameEvent untimedFrameEvent( this, Kiwi::FrameEvent::EventType::UNTIMED_EVENT );
-			this->BroadcastEvent( untimedFrameEvent );
+			//Kiwi::FrameEvent untimedFrameEvent( this, Kiwi::FrameEvent::EventType::UNTIMED_EVENT );
+			//this->BroadcastEvent( untimedFrameEvent );
+			this->BroadcastEvent( Kiwi::FrameEvent( this, Kiwi::FrameEvent::EventType::UNTIMED_EVENT ) );
 
 			/*if( !m_graphicsCore->RenderFrame() )
 			{

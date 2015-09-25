@@ -13,7 +13,8 @@ namespace Kiwi
 	
 	class Viewport;
 
-	class Camera : public Kiwi::Entity
+	class Camera: 
+		public Kiwi::Entity
 	{
 	protected:
 

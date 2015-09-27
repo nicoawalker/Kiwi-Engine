@@ -15,6 +15,7 @@ namespace Kiwi
 		assert( targetWindow != 0 );
 
 		m_wheelDelta = 0;
+		m_mouseSpeed = Kiwi::Vector2( 1.0f, 1.0f );
 
 		RAWINPUTDEVICE Mouse;
 		Mouse.usUsage = 0x02;    // register mouse
@@ -39,7 +40,7 @@ namespace Kiwi
 	{
 	}
 
-	void RawInputWrapper::Update()
+	void RawInputWrapper::OnUpdate( float deltaTime )
 	{
 
 		//first get and set the current position of the mouse
@@ -48,11 +49,13 @@ namespace Kiwi
 		m_currentMouseState.pos.Set( (float)mousePos.x, (float)mousePos.y );
 
 		//store the delta mouse from last frame, and reset the deltaMouse counter
-		m_currentMouseState.deltaPos = m_deltaMouse;
+		m_currentMouseState.deltaPos.x = m_deltaMouse.x * m_mouseSpeed.x;
+		m_currentMouseState.deltaPos.y = m_deltaMouse.y * m_mouseSpeed.y;
+		//m_currentMouseState.deltaPos = m_deltaMouse * deltaTime;
 		m_deltaMouse = Kiwi::Vector2( 0.0f, 0.0f );
 
 		//same for the wheel delta
-		m_currentMouseState.wheelDelta = m_wheelDelta;
+		m_currentMouseState.wheelDelta = m_wheelDelta * deltaTime;
 		m_wheelDelta = 0;
 
 		//update all of the mouse button states

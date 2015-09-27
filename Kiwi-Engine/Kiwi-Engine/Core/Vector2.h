@@ -59,6 +59,9 @@ namespace Kiwi
 
 		//divides each term of this vector by the amount and returns the result
 		Vector2 operator/ (float amount)const;
+		
+		//returns the result of multiplying this vector by a scalar
+		Vector2 operator* ( float scalar )const;
 
 	};
 

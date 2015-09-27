@@ -17,6 +17,9 @@ namespace Kiwi
 		m_indexBuffer = 0;
 		m_hasTransparency = false;
 		m_hasTexture = false;
+		m_isInstanced = false;
+		m_instanceCount = 0;
+		m_instanceCapacity = 0;
 		m_assetFiles.push_back( file );
 
 	}
@@ -33,6 +36,9 @@ namespace Kiwi
 			m_indexBuffer = 0;
 			m_hasTransparency = false;
 			m_hasTexture = false;
+			m_isInstanced = false;
+			m_instanceCount = 0;
+			m_instanceCapacity = 0;
 			m_assetFiles.push_back( file );
 
 			Kiwi::Mesh::Subset subset;
@@ -47,8 +53,8 @@ namespace Kiwi
 			}
 
 			//create the dynamic vertex and index buffers
-			m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"_VB", renderer, vertexCount );
-			m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"_IB", renderer, vertexCount );
+			m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"/VertexBuffer", renderer, vertexCount );
+			m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"/IndexBuffer", renderer, vertexCount );
 
 			//convert the mesh subset data into an array of ShaderVertex structs and also
 			//generate the indices for the index buffer
@@ -59,10 +65,11 @@ namespace Kiwi
 			{
 
 				//check for transparency
-				if( subset.material.GetTransparency() != 0.0f ) m_hasTransparency = true;
+				if( subset.material.GetTransparency() != 1.0f ) m_hasTransparency = true;
 				//check for a texture
 				if( subset.material.IsTextured() ) m_hasTexture = true;
 
+				subset.material.SetMesh( this );
 				subset.startIndex = index;
 
 				//generate ShaderVertex structs from the vertices in the subset
@@ -103,6 +110,9 @@ namespace Kiwi
 			m_indexBuffer = 0;
 			m_hasTransparency = false;
 			m_hasTexture = false;
+			m_isInstanced = false;
+			m_instanceCount = 0;
+			m_instanceCapacity = 0;
 			m_assetFiles.push_back( file );
 
 			m_subsets = meshData;
@@ -114,8 +124,8 @@ namespace Kiwi
 			}
 
 			//create the dynamic vertex and index buffers
-			m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"_VB", renderer, vertexCount );
-			m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"_IB", renderer, vertexCount );
+			m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"/VertexBuffer", renderer, vertexCount );
+			m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"/IndexBuffer", renderer, vertexCount );
 
 			//convert the mesh subset data into an array of ShaderVertex structs and also
 			//generate the indices for the index buffer
@@ -126,7 +136,7 @@ namespace Kiwi
 			{
 
 				//check for transparency
-				if(subset.material.GetTransparency() != 0.0f) m_hasTransparency = true;
+				if(subset.material.GetTransparency() != 1.0f) m_hasTransparency = true;
 				//check for a texture
 				if( subset.material.IsTextured() ) m_hasTexture = true;
 
@@ -196,6 +206,17 @@ namespace Kiwi
 
 	}
 
+	void Mesh::SetData( std::vector<Kiwi::Mesh::Vertex> meshData )
+	{
+
+		
+		std::vector<Kiwi::Mesh::Subset> subsetVector( 1 );
+		subsetVector[0].vertices = meshData;
+
+		this->SetData( subsetVector );
+
+	}
+
 	void Mesh::SetData(std::vector<Kiwi::Mesh::Subset> meshData)
 	{
 
@@ -208,8 +229,9 @@ namespace Kiwi
 		{
 
 			//check for transparency
-			if (subset.material.GetTransparency() != 0.0f) m_hasTransparency = true;
+			if (subset.material.GetTransparency() != 1.0f) m_hasTransparency = true;
 
+			subset.material.SetMesh( this );
 			subset.startIndex = index;
 
 			//generate ShaderVertex structs from the vertices in the subset
@@ -229,10 +251,27 @@ namespace Kiwi
 
 		try
 		{
-			if( !m_vertexBuffer ) m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"_VB", m_renderer, index );
-			if( !m_indexBuffer ) m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"_IB", m_renderer, index );
+			//if the buffers haven't been created yet, do so now
+			if( !m_vertexBuffer )
+			{
+				m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"/VertexBuffer", m_renderer, index );
+			}
+
+			if( !m_indexBuffer )
+			{
+				m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"/IndexBuffer", m_renderer, index );
+			}
 
 			//copy the data into the buffers
+			if( shaderVerts.size() > m_vertexBuffer->GetCapacity() )
+			{
+				m_vertexBuffer->Resize( shaderVerts.size() );
+			}
+			if( indices.size() > m_indexBuffer->GetCapacity() )
+			{
+				m_indexBuffer->Resize( indices.size() );
+			}
+				
 			m_vertexBuffer->SetData( shaderVerts );
 			m_indexBuffer->SetData( indices );
 
@@ -311,58 +350,6 @@ namespace Kiwi
 
 	//----Static member functions
 
-	/*Kiwi::Mesh* Mesh::Cube( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector3& dimensions )
-	{
-
-		float width = dimensions.x;
-		float height = dimensions.y;
-		float depth = dimensions.z;
-
-		std::vector<Kiwi::Mesh::Vertex> meshVertices = {
-			Kiwi::Mesh::Vertex( -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -0.5f ),
-			Kiwi::Mesh::Vertex( 0.5f, 0.5f, -0.5f, 0.5f, 0.0f, 0.0f,  0.0f, -0.5f ),
-			Kiwi::Mesh::Vertex( -0.5f, -0.5f, -0.5f, 0.0f, 0.5f,  0.0f,  0.0f, -0.5f ),
-			Kiwi::Mesh::Vertex( -0.5f, -0.5f, -0.5f, 0.0f, 0.5f,  0.0f,  0.0f, -0.5f ),
-			Kiwi::Mesh::Vertex( 0.5f,  0.5f, -0.5f, 0.5f, 0.0f,  0.0f,  0.0f, -0.5f ),
-			Kiwi::Mesh::Vertex( 0.5f, -0.5f, -0.5f, 0.5f, 0.5f,  0.0f,  0.0f, -0.5f ),
-			Kiwi::Mesh::Vertex( 0.5f,  0.5f, -0.5f, 0.0f, 0.0f,  0.5f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f,  0.5f,  0.5f, 0.5f, 0.0f,  0.5f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f, -0.5f, -0.5f, 0.0f, 0.5f,  0.5f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f, -0.5f, -0.5f, 0.0f, 0.5f,  0.5f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f,  0.5f,  0.5f, 0.5f, 0.0f,  0.5f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f, -0.5f,  0.5f, 0.5f, 0.5f,  0.5f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f,  0.5f,  0.5f, 0.0f, 0.0f , 0.0f,  0.0f , 0.5f ),
-			Kiwi::Mesh::Vertex( -0.5f,  0.5f  ,0.5f ,0.5f ,0.0f  ,0.0f , 0.0f,  0.5f ),
-			Kiwi::Mesh::Vertex( 0.5f, -0.5f,  0.5f ,0.0f, 0.5f,  0.0f,  0.0f, 0.5f ),
-			Kiwi::Mesh::Vertex( 0.5f, -0.5f,  0.5f, 0.0f ,0.5f, 0.0f , 0.0f, 0.5f ),
-			Kiwi::Mesh::Vertex( -0.5f,  0.5f , 0.5f ,0.5f ,0.0f , 0.0f , 0.0f, 0.5f ),
-			Kiwi::Mesh::Vertex( -0.5f, -0.5f , 0.5f, 0.5f ,0.5f , 0.0f,  0.0f, 0.5f ),
-			Kiwi::Mesh::Vertex( -0.5f , 0.5f  ,0.5f, 0.0f ,0.0f ,-0.5f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f , 0.5f, -0.5f, 0.5f, 0.0f ,-0.5f , 0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f, -0.5f , 0.5f, 0.0f ,0.5f, -0.5f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f, -0.5f,  0.5f ,0.0f ,0.5f, -0.5f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f,  0.5f, -0.5f, 0.5f ,0.0f, -0.5f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f ,-0.5f, -0.5f ,0.5f ,0.5f ,-0.5f, 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f,  0.5f,  0.5f ,0.0f, 0.0f , 0.0f,  0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f,  0.5f,  0.5f, 0.5f, 0.0f , 0.0f,  0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f,  0.5f, -0.5f, 0.0f, 0.5f,  0.0f , 0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f , 0.5f ,-0.5f, 0.0f ,0.5f,  0.0f , 0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f, 0.5f , 0.5f, 0.5f, 0.0f , 0.0f , 0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f  ,0.5f, -0.5f, 0.5f, 0.5f , 0.0f , 0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f ,-0.5f ,-0.5f, 0.0f, 0.0f,  0.0f ,-0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f ,-0.5f, -0.5f, 0.5f, 0.0f,  0.0f ,-0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f, -0.5f,  0.5f, 0.0f ,0.5f,  0.0f ,-0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( -0.5f ,-0.5f,  0.5f, 0.0f, 0.5f,  0.0f ,-0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f, -0.5f, -0.5f, 0.5f, 0.0f,  0.0f ,-0.5f, 0.0f ),
-			Kiwi::Mesh::Vertex( 0.5f ,-0.5f , 0.5f, 0.5f, 0.5f,  0.0f, -0.5f, 0.0f )
-		};
-
-		Kiwi::Mesh* cubeMesh = new Kiwi::Mesh( name, L"Cube_Primitive", renderer, meshVertices );
-
-		return cubeMesh;
-
-	}*/
-
 	Kiwi::Mesh* Mesh::Rectangle( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector3& dimensions )
 	{
 
@@ -371,52 +358,74 @@ namespace Kiwi
 		float zPos = dimensions.z / 2.0f;
 
 		std::vector<Kiwi::Mesh::Vertex> meshVertices = {
+			//back face
 			Kiwi::Mesh::Vertex( -xPos, yPos, -zPos, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( xPos, yPos, -zPos, 0.5f, 0.0f, 0.0f,  0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos, -zPos, 0.0f, 0.5f,  0.0f,  0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos, -zPos, 0.0f, 0.5f,  0.0f,  0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( xPos,  yPos, -zPos, 0.5f, 0.0f,  0.0f,  0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.5f, 0.5f,  0.0f,  0.0f, -1.0f ),
-
-			Kiwi::Mesh::Vertex( xPos,  yPos, -zPos, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 0.5f, 0.0f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.0f, 0.5f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.0f, 0.5f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 0.5f, 0.0f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos,  zPos, 0.5f, 0.5f,  1.0f,  0.0f,  0.0f ),
-
-			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 0.0f, 0.0f , 0.0f,  0.0f , 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos,  yPos  ,zPos ,0.5f ,0.0f  ,0.0f , 0.0f,  1.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos,  zPos ,0.0f, 0.5f,  0.0f,  0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos,  zPos, 0.0f ,0.5f, 0.0f , 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos,  yPos , zPos ,0.5f ,0.0f , 0.0f , 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos , zPos, 0.5f ,0.5f , 0.0f,  0.0f, 1.0f ),
-
+			Kiwi::Mesh::Vertex( xPos, yPos, -zPos, 1.0f, 0.0f, 0.0f,  0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos, -zPos, 0.0f, 1.0f,  0.0f,  0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos, -zPos, 0.0f, 1.0f,  0.0f,  0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( xPos, yPos, -zPos, 1.0f, 0.0f,  0.0f,  0.0f, -1.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 1.0f, 1.0f,  0.0f,  0.0f, -1.0f ),
+			//right face
+			Kiwi::Mesh::Vertex( xPos, yPos, -zPos, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos, yPos, zPos, 1.0f, 0.0f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.0f, 1.0f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.0f, 1.0f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos, yPos, zPos, 1.0f, 0.0f,  1.0f,  0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, zPos, 1.0f, 1.0f,  1.0f,  0.0f,  0.0f ),
+			//front face
+			Kiwi::Mesh::Vertex( xPos, yPos, zPos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, yPos, zPos, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, zPos, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, zPos, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, yPos, zPos, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos, zPos, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
+			//left face
 			Kiwi::Mesh::Vertex( -xPos , yPos  ,zPos, 0.0f ,0.0f ,-1.0f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos , yPos, -zPos, 0.5f, 0.0f ,-1.0f , 0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos , zPos, 0.0f ,0.5f, -1.0f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos,  zPos ,0.0f ,0.5f, -1.0f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos,  yPos, -zPos, 0.5f ,0.0f, -1.0f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos ,-yPos, -zPos ,0.5f ,0.5f ,-1.0f, 0.0f, 0.0f ),
-
+			Kiwi::Mesh::Vertex( -xPos , yPos, -zPos, 1.0f, 0.0f ,-1.0f , 0.0f,  0.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos , zPos, 0.0f ,1.0f, -1.0f , 0.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos,  zPos ,0.0f ,1.0f, -1.0f , 0.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos,  yPos, -zPos, 1.0f ,0.0f, -1.0f , 0.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos ,-yPos, -zPos ,1.0f ,1.0f ,-1.0f, 0.0f, 0.0f ),
+			//top face
 			Kiwi::Mesh::Vertex( -xPos,  yPos,  zPos ,0.0f, 0.0f , 0.0f,  1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 0.5f, 0.0f , 0.0f,  1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos,  yPos, -zPos, 0.0f, 0.5f,  0.0f , 1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos , yPos ,-zPos, 0.0f ,0.5f,  0.0f , 1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos, yPos , zPos, 0.5f, 0.0f , 0.0f , 1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos  ,yPos, -zPos, 0.5f, 0.5f , 0.0f , 1.0f, 0.0f ),
-
+			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 1.0f, 0.0f , 0.0f,  1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos,  yPos, -zPos, 0.0f, 1.0f,  0.0f , 1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos , yPos ,-zPos, 0.0f ,1.0f,  0.0f , 1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos, yPos , zPos, 1.0f, 0.0f , 0.0f , 1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos  ,yPos, -zPos, 1.0f, 1.0f , 0.0f , 1.0f, 0.0f ),
+			//bottom face
 			Kiwi::Mesh::Vertex( -xPos ,-yPos ,-zPos, 0.0f, 0.0f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos ,-yPos, -zPos, 0.5f, 0.0f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos,  zPos, 0.0f ,0.5f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos ,-yPos,  zPos, 0.0f, 0.5f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.5f, 0.0f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos ,-yPos , zPos, 0.5f, 0.5f,  0.0f, -1.0f, 0.0f )
+			Kiwi::Mesh::Vertex( xPos ,-yPos, -zPos, 1.0f, 0.0f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos,  zPos, 0.0f ,1.0f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( -xPos ,-yPos,  zPos, 0.0f, 1.0f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 1.0f, 0.0f,  0.0f ,-1.0f, 0.0f ),
+			Kiwi::Mesh::Vertex( xPos ,-yPos , zPos, 1.0f, 1.0f,  0.0f, -1.0f, 0.0f )
 		};
 
 		Kiwi::Mesh* rectangle = new Kiwi::Mesh( name, L"", renderer, meshVertices );
 
 		return rectangle;
+
+	}
+
+	Kiwi::Mesh* Mesh::Quad( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector2& dimensions )
+	{
+
+		float xPos = dimensions.x / 2.0f;
+		float yPos = dimensions.y / 2.0f;
+
+		std::vector<Kiwi::Mesh::Vertex> meshVertices = {
+			Kiwi::Mesh::Vertex( xPos, yPos, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, yPos, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( xPos, -yPos, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, yPos, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
+			Kiwi::Mesh::Vertex( -xPos, -yPos, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
+		};
+
+		Kiwi::Mesh* quad = new Kiwi::Mesh( name, L"", renderer, meshVertices );
+
+		return quad;
 
 	}
 

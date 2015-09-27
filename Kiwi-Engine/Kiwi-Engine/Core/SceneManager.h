@@ -31,9 +31,11 @@ namespace Kiwi
 		SceneManager( Kiwi::EngineRoot* engine );
 		virtual ~SceneManager();
 
-		Kiwi::Scene* CreateScene( std::wstring name, std::wstring rendererName );
+		void AddScene( Kiwi::Scene* scene );
 
 		Kiwi::Scene* FindSceneWithName( std::wstring name );
+
+		void DestroyScene( std::wstring name );
 
 		virtual void OnUpdate( const Kiwi::FrameEvent& evt );
 		virtual void OnFixedUpdate( const Kiwi::FrameEvent& evt );

@@ -97,6 +97,7 @@ namespace Kiwi
 		ID3D11Device* GetDevice()const;
 		ID3D11DeviceContext* GetDeviceContext()const;
 
+		Kiwi::RenderTarget* GetActiveRenderTarget()const { return m_activeRenderTarget; }
 		Kiwi::RasterState* FindRasterStateWithName( std::wstring name );
 		Kiwi::MultisampleDesc GetMultisampleDesc();
 		Kiwi::RenderTarget* GetBackBuffer()const { return m_backBuffer; }

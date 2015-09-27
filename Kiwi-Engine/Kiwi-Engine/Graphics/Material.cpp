@@ -1,4 +1,5 @@
 #include "Material.h"
+#include "Mesh.h"
 
 namespace Kiwi
 {
@@ -6,6 +7,7 @@ namespace Kiwi
 	Material::Material()
 	{
 
+		m_mesh = 0;
 		m_materialName = L"uninitialized";
 		
 		m_diffuseMap = 0;
@@ -24,6 +26,7 @@ namespace Kiwi
 	Material::Material(std::wstring name, const Kiwi::Color& diffuseColor)
 	{
 
+		m_mesh = 0;
 		m_materialName = name;
 		m_diffuseColor = diffuseColor;
 
@@ -41,6 +44,7 @@ namespace Kiwi
 	Material::Material(std::wstring name, Kiwi::Texture* diffuseMap, Kiwi::Texture* bumpMap, Kiwi::Texture* ambientMap, Kiwi::Texture* specularMap)
 	{
 
+		m_mesh = 0;
 		m_materialName = name;
 
 		m_diffuseMap = diffuseMap;
@@ -98,6 +102,16 @@ namespace Kiwi
 		if (colorType.compare(L"Diffuse") == 0)
 		{
 			m_diffuseColor = color;
+			if( m_mesh )
+			{
+				if( m_diffuseColor.alpha != 1.0f )
+				{
+					m_mesh->m_hasTransparency = true;
+				} else
+				{
+					m_mesh->m_hasTransparency = false;
+				}
+			}
 
 		} else if (colorType.compare(L"Ambient") == 0)
 		{

@@ -7,10 +7,14 @@ namespace Kiwi
 {
 
 	class Texture;
+	class Mesh;
 
 	class Material
 	{
 	protected:
+
+		//store a pointer to the parent mesh for this material
+		Kiwi::Mesh* m_mesh;
 
 		std::wstring m_materialName;
 
@@ -39,6 +43,8 @@ namespace Kiwi
 		Material(std::wstring name, Kiwi::Texture* diffuseMap, Kiwi::Texture* bumpMap = 0, Kiwi::Texture* ambientMap = 0, Kiwi::Texture* specularMap = 0);
 		
 		virtual ~Material();
+
+		void SetMesh( Kiwi::Mesh* mesh ) { m_mesh = mesh; }
 
 		/*sets one of the material's textures, depending on the value of 'textureType'
 		possible values are: Diffuse, Ambient, Bump, or Specular*/

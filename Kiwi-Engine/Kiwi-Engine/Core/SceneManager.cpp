@@ -16,7 +16,7 @@ namespace Kiwi
 	{
 
 		m_engine = engine;
-		if( m_engine == 0 ) 
+		if( m_engine == 0 )
 		{ 
 			throw Kiwi::Exception( L"SceneManager", L"Invalid engine pointer" ); 
 		}
@@ -39,7 +39,7 @@ namespace Kiwi
 
 	}
 
-	Kiwi::Scene* SceneManager::CreateScene(std::wstring name, std::wstring rendererName)
+	/*Kiwi::Scene* SceneManager::CreateScene(std::wstring name, std::wstring rendererName)
 	{
 
 		Kiwi::Scene* scene = 0;
@@ -59,6 +59,24 @@ namespace Kiwi
 			throw;
 		}
 
+	}*/
+
+	void SceneManager::AddScene( Kiwi::Scene* scene )
+	{
+
+		if( scene )
+		{
+
+			Kiwi::Scene* existingScene = this->FindSceneWithName( scene->GetName() );
+
+			if( existingScene )
+			{
+				this->DestroyScene( scene->GetName() );
+			}
+
+			m_scenes[scene->GetName()] = scene;
+		}
+
 	}
 
 	Kiwi::Scene* SceneManager::FindSceneWithName( std::wstring name )
@@ -74,13 +92,25 @@ namespace Kiwi
 
 	}
 
+	void SceneManager::DestroyScene( std::wstring name )
+	{
+
+		auto itr = m_scenes.find( name );
+		if( itr != m_scenes.end() )
+		{
+			SAFE_DELETE( itr->second );
+			itr = m_scenes.erase( itr );
+		}
+
+	}
+
 	void SceneManager::OnUpdate( const Kiwi::FrameEvent& evt )
 	{
 
 		auto sceneItr = m_scenes.begin();
 		for( ; sceneItr != m_scenes.end(); sceneItr++ )
 		{
-			sceneItr->second->Update();
+			sceneItr->second->_Update();
 		}
 
 	}
@@ -91,7 +121,7 @@ namespace Kiwi
 		auto sceneItr = m_scenes.begin();
 		for( ; sceneItr != m_scenes.end(); sceneItr++ )
 		{
-			sceneItr->second->FixedUpdate();
+			sceneItr->second->_FixedUpdate();
 		}
 
 	}

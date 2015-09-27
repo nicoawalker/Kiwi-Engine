@@ -30,6 +30,16 @@ namespace Kiwi
 			Kiwi::FreeMemory( m_components );
 		}
 
+		virtual typename std::unordered_map<SortType, ComponentType*>::iterator Front()
+		{
+			return m_components.begin();
+		}
+
+		virtual typename std::unordered_map<SortType, ComponentType*>::iterator Back()
+		{
+			return m_components.end();
+		}
+
 		virtual void Add( SortType key, ComponentType* value )
 		{
 			if( this->Find( key ) != 0 )

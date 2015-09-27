@@ -27,10 +27,13 @@ namespace Kiwi
 	class Camera;
 	class IRenderable;
 	class RenderTarget;
+	class SceneManager;
 
 	class Scene :
 		public Kiwi::IThreadSafe
 	{
+	friend class SceneManager;
+
 	protected:
 
 		Kiwi::EngineRoot* m_engine;
@@ -56,17 +59,26 @@ namespace Kiwi
 		Kiwi::Vector4 m_diffuseDirection;
 		Kiwi::Vector4 m_ambientLight;
 
+	protected:
+
+		void _Update();
+		void _FixedUpdate();
+		void _Render();
+		void _Render3D( RenderableManager::RenderableShaderMap& shaderMap );
+		void _Render2D( RenderableManager::RenderableShaderMap& shaderMap );
+
 	public:
 
 		Scene( Kiwi::EngineRoot* engine, std::wstring name, Kiwi::Renderer* renderer);
 		virtual ~Scene();
 
-		virtual void Update();
-		virtual void FixedUpdate();
+		virtual void OnUpdate() {}
+		virtual void OnFixedUpdate() {}
 
-		virtual void Load();
+		virtual void Load() {}
 
-		virtual void Render();
+		virtual void OnPreRender() {}
+		virtual void OnPostRender() {}
 
 		virtual void AddEntity( Kiwi::Entity* entity );
 		virtual void AddAsset( Kiwi::IAsset* asset );
@@ -74,6 +86,8 @@ namespace Kiwi
 		//virtual void AddCamera( Kiwi::Camera* camera );
 
 		void SetPlayerEntity( Kiwi::Entity* playerEntity );
+
+		std::wstring GetName()const { return m_name; }
 
 		Kiwi::Renderer* GetRenderer()const { return m_renderer; }
 

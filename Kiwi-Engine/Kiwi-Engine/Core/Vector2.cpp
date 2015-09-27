@@ -143,4 +143,11 @@ namespace Kiwi
 
 	}
 
+	Vector2 Vector2::operator* ( float scalar )const
+	{
+
+		return Vector2( this->x * scalar, this->y * scalar );
+
+	}
+
 };

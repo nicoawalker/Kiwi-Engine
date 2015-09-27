@@ -11,6 +11,7 @@
 #include "../Graphics/Mesh.h"
 #include "../Graphics/Material.h"
 #include "../Graphics/Renderer.h"
+#include "../Graphics/Font.h"
 
 #include <future>
 #include <fstream>
@@ -193,7 +194,7 @@ namespace Kiwi
 				std::wstring fontFile = asset.files[0];
 				std::wstring textureFile = asset.files[1];
 
-				return this->_LoadFont( name, fontFile, textureFile );
+				return this->_LoadFont( fontFile, textureFile );
 
 			} else if( type.compare( L"Shader" ) == 0 )
 			{
@@ -313,7 +314,7 @@ namespace Kiwi
 						break;
 					}
 
-					texName += L"_ambient";
+					texName += L"/Ambient";
 
 					//check if the texture is already loaded and in the scene
 					m_scene->m_mutex->lock();
@@ -367,7 +368,7 @@ namespace Kiwi
 						break;
 					}
 
-					texName += L"_diffuse";
+					texName += L"/Diffuse";
 
 					//check if the texture is already loaded and in the scene
 					m_scene->m_mutex->lock();
@@ -421,7 +422,7 @@ namespace Kiwi
 						break;
 					}
 
-					texName += L"_specular";
+					texName += L"/Specular";
 
 					//check if the texture is already loaded and in the scene
 					m_scene->m_mutex->lock();
@@ -475,7 +476,7 @@ namespace Kiwi
 						break;
 					}
 
-					texName += L"_bump";
+					texName += L"/Bump";
 
 					//check if the texture is already loaded and in the scene
 					m_scene->m_mutex->lock();
@@ -548,148 +549,167 @@ namespace Kiwi
 
 	}
 
-	Kiwi::IAsset* SceneLoader::_LoadFont( std::wstring name, std::wstring fontFile, std::wstring textureFile )
+	Kiwi::IAsset* SceneLoader::_LoadFont( std::wstring fontFile, std::wstring textureFile )
 	{
-		return 0;
-		//std::wifstream fin;
 
-		//std::vector<Kiwi::Font::FontCharacter> characterSet;
-		//int imageWidth, imageHeight;
-		//int startChar;
-		//int cellWidth, cellHeight;
-		//int fontHeight;
-		//wchar_t temp;
+		std::wifstream fin;
 
-		//fin.open( filepath );
-		//if( fin.fail() )
-		//{
-		//	throw Kiwi::Exception(L"SceneLoader::_LoadFont", L"Failed to open font file '" + filepath + L"'" );
-		//}
+		std::vector<Kiwi::Font::Character> characterSet;
+		std::wstring name;
+		int imageWidth, imageHeight;
+		int startChar;
+		int cellWidth, cellHeight;
+		int fontHeight;
+		wchar_t temp;
 
-		////get the image width
-		//fin.get( temp );
-		//while( temp != ',' )
-		//{
-		//	fin.get( temp );
-		//}
-		//fin >> imageWidth;
+		fin.open( fontFile );
+		if( fin.fail() )
+		{
+			throw Kiwi::Exception(L"SceneLoader::_LoadFont", L"Failed to open font file '" + fontFile + L"'" );
+		}
 
-		////get the image height
-		//fin.get( temp );
-		//while( temp != ',' )
-		//{
-		//	fin.get( temp );
-		//}
-		//fin >> imageHeight;
+		//get the image width
+		fin.get( temp );
+		while( temp != ',' )
+		{
+			fin.get( temp );
+		}
+		fin >> imageWidth;
 
-		////get the cell width
-		//fin.get( temp );
-		//while( temp != ',' )
-		//{
-		//	fin.get( temp );
-		//}
-		//fin >> cellWidth;
+		//get the image height
+		fin.get( temp );
+		while( temp != ',' )
+		{
+			fin.get( temp );
+		}
+		fin >> imageHeight;
 
-		////get the cell height
-		//fin.get( temp );
-		//while( temp != ',' )
-		//{
-		//	fin.get( temp );
-		//}
-		//fin >> cellHeight;
+		//get the cell width
+		fin.get( temp );
+		while( temp != ',' )
+		{
+			fin.get( temp );
+		}
+		fin >> cellWidth;
 
-		////get the ascii value of the first letter
-		//fin.get( temp );
-		//while( temp != ',' )
-		//{
-		//	fin.get( temp );
-		//}
-		//fin >> startChar;
+		//get the cell height
+		fin.get( temp );
+		while( temp != ',' )
+		{
+			fin.get( temp );
+		}
+		fin >> cellHeight;
 
-		////get the name of the font
-		//fin.get( temp );
-		//while( temp != ',' )
-		//{
-		//	fin.get( temp );
-		//}
-		//fin >> name;
+		//get the ascii value of the first letter
+		fin.get( temp );
+		while( temp != ',' )
+		{
+			fin.get( temp );
+		}
+		fin >> startChar;
 
-		////get the font height
-		//fin.get( temp );
-		//while( temp != ',' )
-		//{
-		//	fin.get( temp );
-		//}
-		//fin >> fontHeight;
+		//get the name of the font
+		fin.get( temp );
+		while( temp != ',' )
+		{
+			fin.get( temp );
+		}
+		fin >> name;
 
-		////add the font height to the end of the font name
-		//name += L"_" + ToWString( fontHeight );
+		//get the font height
+		fin.get( temp );
+		while( temp != ',' )
+		{
+			fin.get( temp );
+		}
+		fin >> fontHeight;
 
-		////skip font width
-		//fin.get( temp );
-		//while( temp != ',' )
-		//{
-		//	fin.get( temp );
-		//}
-		//fin.get( temp );
+		//add the font height to the end of the font name
+		name += ToWString( fontHeight );
 
-		///*amount to multiply the position in the texture with in order
-		//to get the texture coordinates between 0 and 1*/
-		//float texU = 1.0f / (float)imageWidth;
-		//float texV = 1.0f / (float)imageHeight;
+		//skip font width
+		fin.get( temp );
+		while( temp != ',' )
+		{
+			fin.get( temp );
+		}
+		fin.get( temp );
 
-		////how many cells/characters there are vertically and horizontally in the texture
-		//int numCellsX = imageWidth / cellWidth;
-		//int numCellsY = imageHeight / cellHeight;
+		/*amount to multiply the position in the texture with in order
+		to get the texture coordinates between 0 and 1*/
+		float texU = 1.0f / (float)imageWidth;
+		float texV = 1.0f / (float)imageHeight;
 
-		////now read in the widths of each of the 256 letters
-		////and calculate the U,V coordinates of each within the texture
-		//for( int i = 0; i < 256; i++ )
-		//{
+		//how many cells/characters there are vertically and horizontally in the texture
+		int numCellsX = imageWidth / cellWidth;
+		int numCellsY = imageHeight / cellHeight;
 
-		//	int width;
+		//now read in the widths of each of the 256 letters
+		//and calculate the U,V coordinates of each within the texture
+		for( int i = 0; i < 256; i++ )
+		{
 
-		//	fin.get( temp );
-		//	while( temp != ',' )
-		//	{
-		//		fin.get( temp );
-		//	}
-		//	fin >> width;
+			int width;
 
-		//	Kiwi::Font::FontCharacter newChar;
+			fin.get( temp );
+			while( temp != ',' )
+			{
+				fin.get( temp );
+			}
+			fin >> width;
 
-		//	float left = (float)(i%numCellsX) * (float)cellWidth; //x position in texture
-		//	left *= texU; //convert to U,V coordinates
-		//	newChar.left = left;
+			Kiwi::Font::Character newChar;
 
-		//	float right = (float)(i%numCellsX) * (float)cellWidth + (float)width;
-		//	right *= texU;
-		//	newChar.right = right;
+			float left = (float)(i%numCellsX) * (float)cellWidth; //x position in texture
+			left *= texU; //convert to U,V coordinates
+			newChar.left = left;
 
-		//	float top = (int)(i / numCellsY) * (float)cellHeight; //y position in texture
-		//	top *= texV; //convert to U,V coordinates
-		//	newChar.top = top;
+			float right = (float)(i%numCellsX) * (float)cellWidth + (float)width;
+			right *= texU;
+			newChar.right = right;
 
-		//	float bottom = top;
-		//	bottom += (float)fontHeight * texV;
-		//	newChar.bottom = bottom;
+			float top = (int)(i / numCellsY) * (float)cellHeight; //y position in texture
+			top *= texV; //convert to U,V coordinates
+			newChar.top = top;
 
-		//	newChar.charWidth = width;
-		//	newChar.charHeight = fontHeight;
+			float bottom = top;
+			bottom += (float)fontHeight * texV;
+			newChar.bottom = bottom;
 
-		//	characterSet.push_back( newChar );
+			newChar.charWidth = width;
+			newChar.charHeight = fontHeight;
 
-		//}
+			characterSet.push_back( newChar );
 
-		//fin.close();
+		}
 
-		//Kiwi::Font* newFont = new Kiwi::Font();
+		fin.close();
 
-		//m_byteMutex.lock();
-		//	m_loadedSizeInBytes += sizeof( Kiwi::Font );
-		//m_byteMutex.unlock();
+		//check if the texture is already loaded and in the scene
+		m_scene->m_mutex->lock();
+			Kiwi::Texture* fontTexture = m_scene->FindAssetWithName<Kiwi::Texture>( name+L"/Diffuse" );
+		m_scene->m_mutex->unlock();
 
-		//return newFont;
+		if( fontTexture == 0 )
+		{
+			Kiwi::IAsset* fontTextureAsset = this->_LoadTexture( name+L"/Diffuse", textureFile );
+			if( fontTextureAsset != 0 )
+			{
+				//texture not found, try to load it now	
+				fontTexture = dynamic_cast<Kiwi::Texture*>(fontTextureAsset);
+			} else
+			{
+				//failed to load texture
+			}
+		}
+
+		Kiwi::Font* newFont = new Kiwi::Font( name, fontTexture, characterSet );
+
+		m_byteMutex.lock();
+			m_loadedSizeInBytes += sizeof( Kiwi::Font );
+		m_byteMutex.unlock();
+
+		return newFont;
 
 	}
 

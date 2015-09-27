@@ -166,14 +166,18 @@ namespace Kiwi
 		//stores the total amount of wheel motion since the last call to Update()
 		short m_wheelDelta;
 
+		Kiwi::Vector2 m_mouseSpeed;
+
 	public:
 
 		RawInputWrapper( Kiwi::RenderWindow* window );
 		~RawInputWrapper();
 
-		void Update();
+		void OnUpdate( float deltaTime );
 
 		void ProcessInput( WPARAM wParam, LPARAM lParam );
+
+		void SetMouseSpeed( Kiwi::Vector2 speed ) { m_mouseSpeed = speed; }
 
 		/*returns the current state of a mouse button
 		possible values are:
@@ -186,6 +190,8 @@ namespace Kiwi
 		Kiwi::Vector2& GetMousePosition() { return m_currentMouseState.pos; }
 		Kiwi::Vector2& GetMouseDeltaPosition() { return m_currentMouseState.deltaPos; }
 		short GetMouseWheelDelta()const { return m_currentMouseState.wheelDelta; }
+
+		Kiwi::Vector2 GetMouseSpeed()const { return m_mouseSpeed; }
 
 		/*returns the current state of a keyboard key
 		possible values are:

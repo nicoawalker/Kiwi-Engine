@@ -10,6 +10,8 @@
 namespace Kiwi
 {
 
+	class IConsole;
+
 	class EngineRoot:
 		public Kiwi::FrameEventBroadcaster
 	{
@@ -25,6 +27,8 @@ namespace Kiwi
 		Kiwi::RenderWindow* m_gameWindow;
 
 		Kiwi::GameTimer m_gameTimer;
+
+		Kiwi::IConsole* m_console;
 
 		bool m_engineRunning;
 
@@ -42,10 +46,13 @@ namespace Kiwi
 		void Pause() {}
 		void Stop();
 
+		void SetMouseSensitivity( const Kiwi::Vector2& sens );
+
 		void SetGameWindow( Kiwi::RenderWindow* window ) { if( window ) m_gameWindow = window; }
+		void SetConsole( Kiwi::IConsole* console ) { m_console = console; }
 
 		Kiwi::GameTimer* GetGameTimer() { return &m_gameTimer; }
-
+		Kiwi::IConsole* GetConsole() { return m_console; }
 		Kiwi::RenderWindow* GetGameWindow()const { return m_gameWindow; }
 		Kiwi::SceneManager* GetSceneManager() { return &m_sceneManager; }
 		Kiwi::GraphicsManager* GetGraphicsManager() { return &m_graphicsManager; }

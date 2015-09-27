@@ -16,6 +16,8 @@
 #include "Graphics\Material.h"
 #include "Graphics\Mesh.h"
 #include "Graphics\Texture.h"
+#include "Graphics\Font.h"
+#include "Graphics\Text.h"
 
 #include "Graphics\VertexBuffer.h"
 #include "Graphics\IndexBuffer.h"

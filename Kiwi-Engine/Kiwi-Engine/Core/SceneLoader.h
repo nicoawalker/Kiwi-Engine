@@ -84,7 +84,7 @@ namespace Kiwi
 		Kiwi::IAsset* _LoadTexture( std::wstring name, std::wstring textureFile );
 		Kiwi::IAsset* _LoadOBJMesh( std::wstring name, std::wstring objFile );
 		//void _LoadMD5Mesh();
-		Kiwi::IAsset* _LoadFont( std::wstring name, std::wstring fontFile, std::wstring textureFile );
+		Kiwi::IAsset* _LoadFont( std::wstring fontFile, std::wstring textureFile );
 		Kiwi::IAsset* _LoadShader( std::wstring name, std::wstring vsFile, std::wstring psFile );
 
 	public:

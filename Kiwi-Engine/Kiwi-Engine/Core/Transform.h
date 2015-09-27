@@ -53,7 +53,10 @@ namespace Kiwi
 		void Rotate(const Kiwi::Quaternion& rotation);
 
 		/*sets the rotation of the object equal to newRotation*/
-		void SetRotation(Kiwi::Quaternion& newRotation);
+		void SetRotation( const Kiwi::Quaternion& newRotation );
+
+		/*sets the rotation to that of the given transform's*/
+		void SetRotation( const Kiwi::Transform& transform );
 
 		/*rotates the transform so that the local z+ axis passes through the target point*/
 		void RotateTowards(const Kiwi::Vector3& target, float maxRotation = 0.0f);

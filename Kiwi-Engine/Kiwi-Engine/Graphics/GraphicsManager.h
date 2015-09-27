@@ -10,10 +10,15 @@
 
 namespace Kiwi
 {
+
+	class EngineRoot;
+
 	/*this class is responsible for managing all of the graphical assets, resources
 	and classes used by the engine*/
 	class GraphicsManager
 	{
+	friend class EngineRoot;
+
 	protected:
 
 		Kiwi::ComponentContainer<std::wstring, Kiwi::Renderer> m_renderers;

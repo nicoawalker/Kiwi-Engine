@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="Core\Any.cpp" />
     <ClCompile Include="Core\AssetManager.cpp" />
+    <ClCompile Include="Core\IConsole.cpp" />
     <ClCompile Include="Core\EngineRoot.cpp" />
     <ClCompile Include="Core\Entity.cpp" />
     <ClCompile Include="Core\EntityManager.cpp" />
@@ -173,6 +174,7 @@
     <ClCompile Include="Graphics\D3D11Interface.cpp" />
     <ClCompile Include="Graphics\D3DAssetLoader.cpp" />
     <ClCompile Include="Graphics\DepthStencil.cpp" />
+    <ClCompile Include="Graphics\Font.cpp" />
     <ClCompile Include="Graphics\GraphicsManager.cpp" />
     <ClCompile Include="Graphics\IBuffer.cpp" />
     <ClCompile Include="Graphics\IRenderable.cpp" />
@@ -188,6 +190,7 @@
     <ClCompile Include="Graphics\RenderTarget.cpp" />
     <ClCompile Include="Graphics\RenderTargetManager.cpp" />
     <ClCompile Include="Graphics\RenderWindow.cpp" />
+    <ClCompile Include="Graphics\Text.cpp" />
     <ClCompile Include="Graphics\Texture.cpp" />
     <ClCompile Include="Graphics\Viewport.cpp" />
   </ItemGroup>
@@ -196,6 +199,7 @@
     <ClInclude Include="Core\Assert.h" />
     <ClInclude Include="Core\AssetManager.h" />
     <ClInclude Include="Core\ComponentContainer.h" />
+    <ClInclude Include="Core\IConsole.h" />
     <ClInclude Include="Core\EngineRoot.h" />
     <ClInclude Include="Core\Entity.h" />
     <ClInclude Include="Core\EntityManager.h" />
@@ -231,9 +235,11 @@
     <ClInclude Include="Graphics\D3DAssetLoader.h" />
     <ClInclude Include="Graphics\DepthStencil.h" />
     <ClInclude Include="Graphics\DirectX.h" />
+    <ClInclude Include="Graphics\Font.h" />
     <ClInclude Include="Graphics\GraphicsManager.h" />
     <ClInclude Include="Graphics\IBuffer.h" />
     <ClInclude Include="Graphics\IndexBuffer.h" />
+    <ClInclude Include="Graphics\InstancedMesh.h" />
     <ClInclude Include="Graphics\IRenderable.h" />
     <ClInclude Include="Graphics\IShader.h" />
     <ClInclude Include="Graphics\IShaderEffect.h" />
@@ -249,6 +255,7 @@
     <ClInclude Include="Graphics\RenderTarget.h" />
     <ClInclude Include="Graphics\RenderTargetManager.h" />
     <ClInclude Include="Graphics\RenderWindow.h" />
+    <ClInclude Include="Graphics\Text.h" />
     <ClInclude Include="Graphics\Texture.h" />
     <ClInclude Include="Graphics\VertexBuffer.h" />
     <ClInclude Include="Graphics\Viewport.h" />

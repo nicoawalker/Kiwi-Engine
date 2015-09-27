@@ -10,6 +10,7 @@
 #include "../Graphics/Renderer.h"
 #include "../Graphics/IShader.h"
 #include "../Graphics/Mesh.h"
+#include "../Graphics/InstancedMesh.h"
 #include "../Graphics/IRenderable.h"
 #include "../Graphics/RenderTargetManager.h"
 
@@ -19,14 +20,14 @@
 namespace Kiwi
 {
 
-	Scene::Scene( Kiwi::EngineRoot* engine, std::wstring name, Kiwi::Renderer* renderer)
+	Scene::Scene( Kiwi::EngineRoot* engine, std::wstring name, Kiwi::Renderer* renderer )
 	{
 
 		assert( engine != 0 );
 
-		if(renderer == 0)
+		if( renderer == 0 )
 		{
-			throw Kiwi::Exception(L"Scene", L"Invalid renderer");
+			throw Kiwi::Exception( L"Scene", L"Invalid renderer" );
 		}
 
 		m_sceneLoader = 0;
@@ -66,68 +67,45 @@ namespace Kiwi
 
 	}
 
-	void Scene::Update()
+	void Scene::_Update()
 	{
 
 		if( m_playerEntity ) m_playerEntity->Update();
 
 		m_entityManager.Update();
 
-		this->Render();
+		this->OnUpdate();
+
+		this->_Render();
 
 	}
 
-	void Scene::FixedUpdate()
+	void Scene::_FixedUpdate()
 	{
 
 		if( m_playerEntity ) m_playerEntity->FixedUpdate();
 
 		m_entityManager.FixedUpdate();
 
-	}
-
-	void Scene::Load()
-	{
-
-		m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\oldfarmhouse\\farmhouseobj.obj" );
-		//TODO: Fix thread not ending bug in scene loader
-		//m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh2", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\policeman\\policeman.obj" );
-		//m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh3", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\policeman\\policeman.obj" );
-		//m_sceneLoader->QueueLoading<Kiwi::Mesh>( L"StaticMesh", L"TestMesh4", L"H:\\Programming\\Projects\\Kiwi-Engine-Demo\\Kiwi Engine Demo\\Kiwi Engine Demo\\Data\\Models\\policeman\\policeman.obj" );
-
-		m_sceneLoader->Start();
-		while( !m_sceneLoader->Finished() )
-		{
-
-		}
-
-		if( m_sceneLoader->GetExceptions().size() != 0 )
-		{
-			throw m_sceneLoader->GetExceptions()[0];
-		}
+		this->OnFixedUpdate();
 
 	}
 
-	void Scene::Render()
+	void Scene::_Render()
 	{
 
 		assert( m_renderer != 0 );
 
+		this->OnPreRender();
+
 		try
 		{
-
-			bool renderTransparency = false; //if there are transparent entities this will be set to true
-
-			bool once = true;
-
-			//first get the 3D renderables
-			Kiwi::RenderableManager::RenderableMap* renderables3D = m_renderableManager.Get3DRenderables();
-
-			m_renderer->SetRasterState( L"Cull CCW" );
+			//get the renderables
+			Kiwi::RenderableManager::RenderableMap* renderables = m_renderableManager.GetRenderables();
 
 			//iterate over each render target
-			auto renderTargetIt = renderables3D->rtMap.begin();
-			for( ; renderTargetIt != renderables3D->rtMap.end(); renderTargetIt++ )
+			auto renderTargetIt = renderables->rtMap.begin();
+			for( ; renderTargetIt != renderables->rtMap.end(); renderTargetIt++ )
 			{
 				//get the render target
 				Kiwi::RenderTarget* activeRenderTarget = this->FindRenderTargetWithName( renderTargetIt->first );
@@ -139,87 +117,304 @@ namespace Kiwi
 
 					m_renderer->GetDeviceContext()->RSSetViewports( 1, &activeRenderTarget->GetViewport( 0 )->GetD3DViewport() );
 
-					auto shaderIt = renderTargetIt->second.shaderMap.begin();
-					for( ; shaderIt != renderTargetIt->second.shaderMap.end(); shaderIt++ )
-					{
-						//get the shader from the shader container
-						Kiwi::IShader* shader = m_shaderContainer.Find( shaderIt->first );
+					//set the raster state to cull back-faces when rendering the opaque renderables
+					m_renderer->SetRasterState( L"Cull CCW" );
 
-						if( shader != 0 )
-						{
-							//for each shader, if the shader exists, set it as active and get the mesh map
-							shader->Bind( m_renderer );
+					//first render all of the 3D renderables
+					this->_Render3D( renderTargetIt->second );
 
-							shader->SetFrameParameters( this );
+					//then render all of the 2D renderables
+					this->_Render2D( renderTargetIt->second );
 
-							auto meshItr = shaderIt->second.meshMap.begin();
-							for( ; meshItr != shaderIt->second.meshMap.end(); meshItr++ )
-							{
-								//set the renderTransparency flag if there are any transparent renderables
-								if( meshItr->second.transparent_renderables.size() > 0 ) renderTransparency = true;
-
-								//TODO: z-sort the renderable list
-
-								if( meshItr->second.opaque_renderables.size() > 0 )
-								{
-									//loop through all of the renderables using this mesh and render them
-									auto renderableIt = meshItr->second.opaque_renderables.begin();
-
-									//get a pointer to the mesh from the first renderable in the list
-									Kiwi::Mesh* mesh = (*renderableIt)->GetMesh();
-
-									if( mesh != 0 )
-									{
-										//bind the mesh's buffers
-										mesh->Bind( m_renderer );
-
-										//render each subset of the mesh
-										for( unsigned int i = 0; i < mesh->GetSubsetCount(); i++ )
-										{
-										//render all of the renderables
-										for( ; renderableIt != meshItr->second.opaque_renderables.end(); renderableIt++ )
-										{
-											
-												//get the current subset
-												Kiwi::Mesh::Subset* subset = mesh->GetSubset( i );
-												//find the size of the subset
-												unsigned int subsetSize = subset->endIndex - subset->startIndex;
-
-												//set the renderable's current mesh subset so the shader knows what to render
-												(*renderableIt)->SetCurrentMeshSubset( i );
-
-												//set the renderable's shader parameters
-												shader->SetObjectParameters( this, activeRenderTarget, *renderableIt );
-
-												//now draw the renderable to the render target
-												m_renderer->GetDeviceContext()->DrawIndexed( subsetSize, subset->startIndex, 0 );
-											}
-										}
-									} else
-									{
-										MessageBox( NULL, L"No Mesh", L"A", MB_OK );
-									}
-								}
-							}
-						} else
-						{
-							MessageBox( NULL, L"No Shader", L"A", MB_OK );
-						}
-					}
 				} else
 				{
 					MessageBox( NULL, L"No RenderTarget", L"A", MB_OK );
 				}
 			}
 
-			//now get the 2D renderables
-			//Kiwi::RenderableManager::RenderableMap* renderables2D = m_renderableManager.Get2DRenderables();
-
 			m_renderer->Present();
 
 		} catch( Kiwi::Exception& e )
 		{
 			MessageBox( NULL, e.GetError().c_str(), L"A", MB_OK );
+		}
+
+		this->OnPostRender();
+
+	}
+
+	void Scene::_Render3D(RenderableManager::RenderableShaderMap& shaderMap)
+	{
+
+		//if there are transparent entities this will be set to true so we know to render
+		//the transparent renderables after all of the others
+		bool renderTransparency = false;
+
+		//first render all of the 3D renderables
+		auto shaderIt = shaderMap.shaderMap.begin();
+		for( ; shaderIt != shaderMap.shaderMap.end(); shaderIt++ )
+		{
+			//get the shader from the shader container
+			Kiwi::IShader* shader = m_shaderContainer.Find( shaderIt->first );
+
+			if( shader != 0 )
+			{
+				//for each shader, if the shader exists, set it as active and get the mesh map
+				shader->Bind( m_renderer );
+
+				shader->SetFrameParameters( this );
+
+				auto meshItr = shaderIt->second.meshMap.begin();
+				for( ; meshItr != shaderIt->second.meshMap.end(); meshItr++ )
+				{
+					//set the renderTransparency flag if there are any transparent renderables
+					if( meshItr->second.transparent_renderables.size() > 0 )
+					{
+						renderTransparency = true;
+					}
+
+					//TODO: z-sort the renderable list
+
+					if( meshItr->second.opaque_renderables.size() > 0 )
+					{
+						//loop through all of the renderables using this mesh and render them
+						auto renderableIt = meshItr->second.opaque_renderables.begin();
+
+						//get a pointer to the mesh from the first renderable in the list
+						Kiwi::Mesh* mesh = (*renderableIt)->GetMesh();
+
+						if( mesh != 0 )
+						{
+							//bind the mesh's buffers
+							try
+							{
+								//bind will throw if the mesh does not have a valid renderer or if
+								//the buffers have not been initialized
+								mesh->Bind( m_renderer );
+
+							} catch( Kiwi::Exception& e )
+							{
+								//cant render this mesh, move on to the next one
+								continue;
+							}
+
+							//render each subset of the mesh
+							for( unsigned int i = 0; i < mesh->GetSubsetCount(); i++ )
+							{
+								//render this subset for all of the renderables
+								for( ; renderableIt != meshItr->second.opaque_renderables.end(); renderableIt++ )
+								{
+									if( (*renderableIt)->GetParentEntity() && (*renderableIt)->GetParentEntity()->IsActive() == false )
+									{
+										//don't render any renderables that belong to an inactive entity
+										continue;
+									}
+
+									//get the current subset
+									Kiwi::Mesh::Subset* subset = mesh->GetSubset( i );
+									//find the size of the subset
+									unsigned int subsetSize = subset->endIndex - subset->startIndex;
+
+									//set the renderable's current mesh subset so the shader knows what to render
+									(*renderableIt)->SetCurrentMeshSubset( i );
+
+									//set the renderable's shader parameters
+									shader->SetObjectParameters( this, m_renderer->GetActiveRenderTarget(), *renderableIt );
+
+									if( mesh->IsInstanced() )
+									{
+										//draw all of the instances of the mesh
+										m_renderer->GetDeviceContext()->DrawIndexedInstanced( subsetSize, mesh->GetInstanceCount(), subset->startIndex, 0, 0 );
+
+									} else
+									{
+										//render the mesh without instancing
+										m_renderer->GetDeviceContext()->DrawIndexed( subsetSize, subset->startIndex, 0 );
+									}
+								}
+							}
+						} else
+						{
+							MessageBox( NULL, L"No Mesh", L"A", MB_OK );
+						}
+					}
+				}
+			} else
+			{
+				MessageBox( NULL, L"No Shader", L"A", MB_OK );
+			}
+		}
+
+		//if there were transparent 3D renderables we skipped, render them now at the end
+		if( renderTransparency )
+		{
+			shaderIt = shaderMap.shaderMap.begin();
+			for( ; shaderIt != shaderMap.shaderMap.end(); shaderIt++ )
+			{
+				//get the shader from the shader container
+				Kiwi::IShader* shader = m_shaderContainer.Find( shaderIt->first );
+
+				if( shader != 0 )
+				{
+					//for each shader, if the shader exists, set it as active and get the mesh map
+					shader->Bind( m_renderer );
+
+					shader->SetFrameParameters( this );
+
+					auto meshItr = shaderIt->second.meshMap.begin();
+					for( ; meshItr != shaderIt->second.meshMap.end(); meshItr++ )
+					{
+						//TODO: z-sort the renderable list
+
+						if( meshItr->second.transparent_renderables.size() > 0 )
+						{
+							//loop through all of the renderables using this mesh and render them
+							auto renderableIt = meshItr->second.transparent_renderables.begin();
+
+							//get a pointer to the mesh from the first renderable in the list
+							Kiwi::Mesh* mesh = (*renderableIt)->GetMesh();
+
+							if( mesh != 0 )
+							{
+								//bind the mesh's buffers
+								try
+								{
+									//bind will throw if the mesh does not have a valid renderer or if
+									//the buffers have not been initialized
+									mesh->Bind( m_renderer );
+								} catch( Kiwi::Exception& e )
+								{
+									//cant render this mesh, move on to the next one
+									continue;
+								}
+
+								//render each subset of the mesh
+								for( unsigned int i = 0; i < mesh->GetSubsetCount(); i++ )
+								{
+									//render this subset for all of the renderables
+									for( ; renderableIt != meshItr->second.transparent_renderables.end(); renderableIt++ )
+									{
+										if( (*renderableIt)->GetParentEntity() && (*renderableIt)->GetParentEntity()->IsActive() == false )
+										{
+											//don't render any renderables that belong to an inactive entity
+											continue;
+										}
+
+										//get the current subset
+										Kiwi::Mesh::Subset* subset = mesh->GetSubset( i );
+										//find the size of the subset
+										unsigned int subsetSize = subset->endIndex - subset->startIndex;
+
+										//set the renderable's current mesh subset so the shader knows what to render
+										(*renderableIt)->SetCurrentMeshSubset( i );
+
+										//set the renderable's shader parameters
+										shader->SetObjectParameters( this, m_renderer->GetActiveRenderTarget(), *renderableIt );
+
+										//now draw the renderable to the render target twice, once for the back faces
+										//and then again for the front faces
+										m_renderer->SetRasterState( L"Cull CW" );
+										m_renderer->GetDeviceContext()->DrawIndexed( subsetSize, subset->startIndex, 0 );
+										m_renderer->SetRasterState( L"Cull CCW" );
+										m_renderer->GetDeviceContext()->DrawIndexed( subsetSize, subset->startIndex, 0 );
+									}
+								}
+							} else
+							{
+								MessageBox( NULL, L"No Mesh", L"A", MB_OK );
+							}
+						}
+					}
+				} else
+				{
+					MessageBox( NULL, L"No Shader", L"A", MB_OK );
+				}
+			}
+		}
+
+	}
+
+	void Scene::_Render2D( RenderableManager::RenderableShaderMap& shaderMap )
+	{
+
+		//render all of the 2D renderables
+		auto shaderIt2D = shaderMap.shaderMap2D.begin();
+		for( ; shaderIt2D != shaderMap.shaderMap2D.end(); shaderIt2D++ )
+		{
+			//get the shader from the shader container
+			Kiwi::IShader* shader = m_shaderContainer.Find( shaderIt2D->first );
+
+			if( shader != 0 )
+			{
+				//for each shader, if the shader exists, set it as active and get the mesh map
+				shader->Bind( m_renderer );
+
+				shader->SetFrameParameters( this );
+
+				auto meshItr = shaderIt2D->second.meshMap.begin();
+				for( ; meshItr != shaderIt2D->second.meshMap.end(); meshItr++ )
+				{
+					//TODO: z-sort the renderable list
+
+					if( meshItr->second.opaque_renderables.size() > 0 )
+					{
+						//loop through all of the renderables using this mesh and render them
+						auto renderableIt = meshItr->second.opaque_renderables.begin();
+
+						//get a pointer to the mesh from the first renderable in the list
+						Kiwi::Mesh* mesh = (*renderableIt)->GetMesh();
+
+						if( mesh != 0 )
+						{
+							//bind the mesh's buffers
+							try
+							{
+								//bind will throw if the mesh does not have a valid renderer or if
+								//the buffers have not been initialized
+								mesh->Bind( m_renderer );
+							} catch( Kiwi::Exception& e )
+							{
+								//cant render this mesh, move on to the next one
+								continue;
+							}
+
+							//render each subset of the mesh
+							for( unsigned int i = 0; i < mesh->GetSubsetCount(); i++ )
+							{
+								//render this subset for all of the renderables
+								for( ; renderableIt != meshItr->second.opaque_renderables.end(); renderableIt++ )
+								{
+									if( (*renderableIt)->GetParentEntity() && (*renderableIt)->GetParentEntity()->IsActive() == false )
+									{
+										//don't render any renderables that belong to an inactive entity
+										continue;
+									}
+
+									//get the current subset
+									Kiwi::Mesh::Subset* subset = mesh->GetSubset( i );
+									//find the size of the subset
+									unsigned int subsetSize = subset->endIndex - subset->startIndex;
+
+									//set the renderable's current mesh subset so the shader knows what to render
+									(*renderableIt)->SetCurrentMeshSubset( i );
+
+									//set the renderable's shader parameters
+									shader->SetObjectParameters( this, m_renderer->GetActiveRenderTarget(), *renderableIt );
+
+									//now draw the renderable to the render target
+									m_renderer->GetDeviceContext()->DrawIndexed( subsetSize, subset->startIndex, 0 );
+								}
+							}
+						} else
+						{
+							MessageBox( NULL, L"No 2D Mesh", L"A", MB_OK );
+						}
+					}
+				}
+			} else
+			{
+				MessageBox( NULL, L"No 2D Shader", L"A", MB_OK );
+			}
 		}
 
 	}

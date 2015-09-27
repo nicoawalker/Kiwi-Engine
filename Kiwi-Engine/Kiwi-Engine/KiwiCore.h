@@ -9,6 +9,7 @@
 #include "Core\Logger.h"
 #include "Core\Entity.h"
 #include "Core\Transform.h"
+#include "Core\IConsole.h"
 
 #include "Core\Exception.h"
 #include "Core\Utilities.h"

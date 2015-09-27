@@ -43,7 +43,7 @@ namespace Kiwi
 
 		LRESULT HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
-		void Update();
+		void Update( float deltaTime );
 
 		bool Show(int cmdShow);
 

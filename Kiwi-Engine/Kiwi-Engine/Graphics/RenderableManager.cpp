@@ -37,16 +37,16 @@ namespace Kiwi
 					if( mesh != 0 )
 					{
 
-						if( mesh->HasTransparency() == false || mesh->HasTransparency() == true)
+						if( mesh->HasTransparency() == false )
 						{
 							//add the renderable to the list of 3d opaque renderables
 							//sorted by     3D   >>    RenderTarget            >>                Shader            >>          Mesh         >>       No Transparency     >>     renderable
-							m_3DRenderables.rtMap[renderable->GetRenderTarget()].shaderMap[shader].meshMap[mesh->GetAssetName()].opaque_renderables.push_back( renderable );
+							m_renderables.rtMap[renderable->GetRenderTarget()].shaderMap[shader].meshMap[mesh->GetAssetName()].opaque_renderables.push_back( renderable );
 						} else
 						{
 							//add the renderable to the list of 3d transparent renderables
 							//sorted by     3D   >>    RenderTarget            >>                Shader            >>          Mesh         >>         Transparency          >>     renderable
-							m_3DRenderables.rtMap[renderable->GetRenderTarget()].shaderMap[shader].meshMap[mesh->GetAssetName()].transparent_renderables.push_back( renderable );
+							m_renderables.rtMap[renderable->GetRenderTarget()].shaderMap[shader].meshMap[mesh->GetAssetName()].transparent_renderables.push_back( renderable );
 						}
 
 					}
@@ -65,12 +65,12 @@ namespace Kiwi
 						{
 							//add the renderable to the list of 2d opaque renderables
 							//sorted by     2D   >>    RenderTarget           >>                Shader            >>          Mesh         >>       No Transparency     >>     renderable
-							m_2DRenderables.rtMap[renderable->GetRenderTarget()].shaderMap[effect->GetShaderName()].meshMap[mesh->GetAssetName()].opaque_renderables.push_back( renderable );
+							m_renderables.rtMap[renderable->GetRenderTarget()].shaderMap2D[effect->GetShaderName()].meshMap[mesh->GetAssetName()].opaque_renderables.push_back( renderable );
 						} else
 						{
 							//add the renderable to the list of 2d transparent renderables
 							//sorted by    2D    >>    RenderTarget           >>                Shader            >>          Mesh         >>         Transparency           >>     renderable
-							m_2DRenderables.rtMap[renderable->GetRenderTarget()].shaderMap[effect->GetShaderName()].meshMap[mesh->GetAssetName()].transparent_renderables.push_back( renderable );
+							m_renderables.rtMap[renderable->GetRenderTarget()].shaderMap2D[effect->GetShaderName()].meshMap[mesh->GetAssetName()].transparent_renderables.push_back( renderable );
 						}
 
 					}
@@ -99,8 +99,7 @@ namespace Kiwi
 	void RenderableManager::RemoveAll()
 	{
 
-		m_3DRenderables.rtMap.clear();
-		m_2DRenderables.rtMap.clear();
+		Kiwi::FreeMemory( m_renderables.rtMap );
 
 	}
 

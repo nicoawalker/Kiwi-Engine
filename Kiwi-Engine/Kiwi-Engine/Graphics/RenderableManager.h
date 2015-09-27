@@ -30,6 +30,9 @@ namespace Kiwi
 		{
 			//stores the name of a shader, and a RenderableMeshMap of renderables that use the shader
 			std::unordered_map<std::wstring, RenderableMeshMap> shaderMap;
+
+			//stores the shaders for the 2d renderables using this render target
+			std::unordered_map<std::wstring, RenderableMeshMap> shaderMap2D;
 		};
 
 		struct RenderableMap
@@ -40,8 +43,7 @@ namespace Kiwi
 
 	protected:
 
-		RenderableMap m_2DRenderables;
-		RenderableMap m_3DRenderables;
+		RenderableMap m_renderables;
 
 	public:
 
@@ -58,8 +60,7 @@ namespace Kiwi
 		//Kiwi::IRenderable* FindWithName( std::wstring name );
 		//std::vector<Kiwi::IRenderable*> FindAllWithTag( std::wstring tag );
 
-		RenderableManager::RenderableMap* Get3DRenderables() { return &m_3DRenderables; }
-		RenderableManager::RenderableMap* Get2DRenderables() { return &m_2DRenderables; }
+		RenderableManager::RenderableMap* GetRenderables() { return &m_renderables; }
 
 	};
 }

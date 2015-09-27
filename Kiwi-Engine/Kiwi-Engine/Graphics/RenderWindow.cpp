@@ -117,10 +117,10 @@ namespace Kiwi
 		return DefWindowProc(m_hwnd, msg, wParam, lParam);
 	}
 
-	void RenderWindow::Update()
+	void RenderWindow::Update( float deltaTime )
 	{
 
-		if( m_inputDevice ) m_inputDevice->Update();
+		if( m_inputDevice ) m_inputDevice->OnUpdate( deltaTime );
 
 	}
 

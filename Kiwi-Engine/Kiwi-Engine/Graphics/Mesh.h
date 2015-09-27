@@ -20,6 +20,8 @@ namespace Kiwi
 	class Mesh :
 		public Kiwi::IAsset
 	{
+	friend class Material;
+
 	public:
 
 		struct ShaderVertex
@@ -65,6 +67,11 @@ namespace Kiwi
 		/*if any subset material has a texture this is true*/
 		bool m_hasTexture;
 
+		/*if the mesh was created as an InstancedMesh this will be true*/
+		bool m_isInstanced;
+		long m_instanceCount;
+		long m_instanceCapacity;
+
 	public:
 
 		/*creates an empty mesh*/
@@ -77,14 +84,16 @@ namespace Kiwi
 		Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, std::vector<Kiwi::Mesh::Subset> subsetList );
 		virtual ~Mesh();
 
-		void Bind( Kiwi::Renderer* renderer );
+		virtual void Bind( Kiwi::Renderer* renderer );
 
 		bool HasTransparency()const { return m_hasTransparency; }
 		bool HasTexture()const { return m_hasTexture; }
+		bool IsInstanced()const { return m_isInstanced; }
 
 		//void AddSubset( const Kiwi::MeshSubset& subset );
 		//void AddSubsetList( std::vector<Kiwi::MeshSubset> subsetList );
-		void SetData(std::vector<Kiwi::Mesh::Subset> meshData);
+		virtual void SetData( std::vector<Kiwi::Mesh::Vertex> vertices );
+		virtual void SetData( std::vector<Kiwi::Mesh::Subset> meshData );
 
 		void SetSubsetMaterial(unsigned int index, const Kiwi::Material& mat);
 
@@ -97,11 +106,15 @@ namespace Kiwi
 		int GetIndexCount()const;
 		int GetVertexCount()const;
 
+		long GetInstanceCount()const { return m_instanceCount; }
+		long GetInstanceCapacity()const { return m_instanceCapacity; }
+
 		Kiwi::IBuffer* GetVertexBuffer();
 		Kiwi::IBuffer* GetIndexBuffer();
 
 		/*creates a mesh representing a 1x1x1 cube primitive*/
 		static Kiwi::Mesh* Rectangle( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector3& dimensions );
+		static Kiwi::Mesh* Quad( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector2& dimensions );
 
 	};
 };

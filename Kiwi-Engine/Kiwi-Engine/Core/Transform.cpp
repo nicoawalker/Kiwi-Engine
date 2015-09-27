@@ -70,10 +70,17 @@ namespace Kiwi
 
 	}
 
-	void Transform::SetRotation(Kiwi::Quaternion& newRotation)
+	void Transform::SetRotation( const Kiwi::Quaternion& newRotation )
 	{
 
 		m_rotation = newRotation;
+
+	}
+
+	void Transform::SetRotation( const Kiwi::Transform& transform )
+	{
+
+		this->SetRotation( transform.GetRotation() );
 
 	}
 

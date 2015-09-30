@@ -166,6 +166,7 @@
     <ClCompile Include="Core\Utilities.cpp" />
     <ClCompile Include="Core\Vector2.cpp" />
     <ClCompile Include="Core\Vector3.cpp" />
+    <ClCompile Include="Core\Vector3L.cpp" />
     <ClCompile Include="Core\Vector4.cpp" />
     <ClCompile Include="Graphics\BlendState.cpp" />
     <ClCompile Include="Graphics\BlendStateManager.cpp" />
@@ -226,6 +227,7 @@
     <ClInclude Include="Core\Utilities.h" />
     <ClInclude Include="Core\Vector2.h" />
     <ClInclude Include="Core\Vector3.h" />
+    <ClInclude Include="Core\Vector3L.h" />
     <ClInclude Include="Core\Vector4.h" />
     <ClInclude Include="Graphics\BlendState.h" />
     <ClInclude Include="Graphics\BlendStateManager.h" />

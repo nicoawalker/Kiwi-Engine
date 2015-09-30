@@ -27,7 +27,7 @@ namespace Kiwi
 		{
 			throw Kiwi::Exception( L"RawInputWrapper", L"[Mouse] Call to RegisterRawInputDevices failed" );
 		}
-
+		
 		/*intialize all key values to the default key_up state*/
 		m_keyboardState.resize( 256 );
 		std::fill( m_keyboardState.begin(), m_keyboardState.end(), KEY_UP );

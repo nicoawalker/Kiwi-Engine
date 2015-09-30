@@ -26,15 +26,14 @@ namespace Kiwi
 
 		/*optimization to avoid a divide every frame
 		stores 1/m_targetUpdatesPerSecond*/
-		float m_oneOverTUPS;
+		double m_oneOverTUPS;
 
 		/*equal to 1/FPS used to time motion and movements
 		e.g. to move 1 unit per second you would increment by 1*deltaTime
 		each update cycle*/
 		float m_deltaTime;
 
-		/*equal to 1/fixedUpdatesPerSecond
-		this is for use in FixedUpdate() calls to do motion, instead of deltaTime*/
+		/*equal to 1/fixedUpdatesPerSecond*/
 		float m_fixedDeltaTime;
 
 		//true when it's time to do a fixedupdate call
@@ -53,12 +52,20 @@ namespace Kiwi
 		int GetFixedUpdatesPerSecond()const { return m_fixedUpdatesPerSecond; }
 		int GetTargetUpdatesPerSecond()const { return m_targetUpdatesPerSecond; }
 
+		/*returns the total time, in seconds, since the game was started*/
+		double GetGameTime()const { return m_totalTime; }
+
+		/*gets the time the last frame took to complete*/
 		float GetDeltaTime()const { return m_deltaTime; }
-		float GetFixedDeltaTime()const;
+
+		/*returns the current fixed frame value
+		it is equal to 1/TargetUpdatesPerSecond if greater than 
+		deltaTime and is equal to the delta time otherwise*/
+		float GetFixedDeltaTime()const { return m_fixedDeltaTime; }
 
 		/*Call on every update cycle to determine if a FixedUpdate should occur
 		this should be called only after the Update method is called*/
-		bool QueryFixedUpdate();
+		bool QueryFixedUpdate() { return m_doFixedUpdate; }
 
 	};
 };

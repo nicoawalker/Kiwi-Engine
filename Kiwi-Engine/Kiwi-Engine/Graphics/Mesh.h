@@ -4,6 +4,7 @@
 #include "DirectX.h"
 #include "Material.h"
 #include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 #include "../Core/IAsset.h"
 #include "../Core/Vector2.h"
@@ -14,8 +15,6 @@
 
 namespace Kiwi
 {
-
-	class IndexBuffer;
 
 	class Mesh :
 		public Kiwi::IAsset
@@ -75,7 +74,7 @@ namespace Kiwi
 	public:
 
 		/*creates an empty mesh*/
-		Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer );
+		Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, unsigned int vertexCount = 0 );
 
 		/*creates a mesh from an array of vertices. the vertices will automatically be placed into a new subset*/
 		Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, std::vector<Kiwi::Mesh::Vertex> vertices );

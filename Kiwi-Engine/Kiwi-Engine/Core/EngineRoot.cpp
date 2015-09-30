@@ -32,6 +32,7 @@ namespace Kiwi
 	{
 
 		m_gameTimer.StartTimer();
+		m_gameTimer.Update();
 
 		m_engineRunning = true;
 		while( m_engineRunning )

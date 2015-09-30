@@ -50,7 +50,7 @@ namespace Kiwi
 	{
 
 		//SAFE_DELETE( m_mesh );
-		//SAFE_DELETE( m_shaderEffect );
+		SAFE_DELETE( m_shaderEffect );
 
 	}
 

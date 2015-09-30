@@ -3,6 +3,7 @@
 
 #include "Vector2.h"
 #include "Vector3.h"
+#include "Vector3L.h"
 #include "Vector4.h"
 #include "Quaternion.h"
 //#include "Matrix3.h"
@@ -64,13 +65,6 @@ namespace Kiwi
 
 	}
 
-
-	//converts a kiwimatrix3x3 into a 4x4 D3DXMATRIX
-	//void Matrix3ToD3DXMatrix(const Kiwi::Matrix3& kMat, D3DXMATRIX& matrix);
-
-	//copies a kiwimatrix4x4 into a 4x4 D3DXMATRIX
-	//void Matrix4ToD3DXMatrix(const Kiwi::Matrix4& kMat, D3DXMATRIX& matrix);
-
 	/*copies a Kiwi::Matrix4 into an XMMATRIX*/
 	void Matrix4ToXMMATRIX( const Kiwi::Matrix4& kMat, DirectX::XMMATRIX& xmMat );
 
@@ -78,6 +72,8 @@ namespace Kiwi
 	void Vector4ToXMFLOAT4( const Kiwi::Vector4& kVec, DirectX::XMFLOAT4& xmFloat );
 	/*copies a Kiwi::Vector3 into an XMFLOAT4*/
 	void Vector3ToXMFLOAT4( const Kiwi::Vector3& kVec, DirectX::XMFLOAT4& xmFloat );
+
+	void Vector3LToXMFLOAT4( const Kiwi::Vector3L& kVec, DirectX::XMFLOAT4& xmFloat );
 
 };
 

@@ -14,6 +14,8 @@ namespace Kiwi
 		int m_frameCount;
 
 		__int64 m_frameTimeOld;
+
+		//stores the time the last frame took to complete, in seconds
 		double m_frameTime;
 
 		//the total time, in seconds, since StartTimer was called
@@ -38,10 +40,10 @@ namespace Kiwi
 		virtual void Reset();
 
 		/*returns the time in seconds since StartTimer() was last called*/
-		virtual float GetTotalTime()const;
+		virtual double GetTotalTime()const;
 
 		/*returns the time the last frame took to complete*/
-		virtual float GetFrameTime()const;
+		virtual double GetFrameTime()const;
 
 		virtual bool IsStarted()const { return m_started; }
 

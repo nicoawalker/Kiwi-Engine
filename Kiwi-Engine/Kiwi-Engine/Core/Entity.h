@@ -47,7 +47,7 @@ namespace Kiwi
 	public:
 
 		Entity(std::wstring name, Kiwi::Scene* scene);
-		virtual ~Entity() = 0; //pure virtual destructor to keep entity abstract
+		virtual ~Entity();
 
 		virtual void Shutdown() {}
 

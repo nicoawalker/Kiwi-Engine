@@ -11,7 +11,7 @@ namespace Kiwi
 		m_framesPerSecond = 1;
 		m_fixedUpdatesPerSecond = 1;
 		m_targetUpdatesPerSecond = 60;
-		m_oneOverTUPS = 1.0f / 60.0f;
+		m_oneOverTUPS = 1.0 / 60.0;
 
 		m_deltaTime = 0.0f;
 		m_fixedDeltaTime = 0.0f;
@@ -30,48 +30,41 @@ namespace Kiwi
 
 		if(m_started == false) return;
 
-		static float elapsedTime = 0.0f;
-		static int frameCounter = 0;
-		static float FPSTimer = 0.0f;
-
-		frameCounter++;
+		static double elapsedTime = 0.0;
+		static int lastFPSFrame = 0; //stores the frame count when the fps was last calculated
+		//static double FPSTimer = 0.0;
 
 		//update the main timer
 		this->_Tick();
 
-		//if enough time has passed, time to do a FixedUpdate
-		if(m_frameTime > 1.0)
-		{
-			elapsedTime += 1.0f;
-			FPSTimer += 1.0f;
-		}else
-		{
-			elapsedTime += (float)m_frameTime;
-			FPSTimer += (float)m_frameTime;
-		}
-		if(elapsedTime >= m_fixedDeltaTime)
-		{
-			m_doFixedUpdate = true;
-			elapsedTime -= m_fixedDeltaTime;
-		}
+		elapsedTime += m_frameTime;
+		m_doFixedUpdate = false;
+		m_deltaTime = (float)m_frameTime;
 
-		if(FPSTimer >= 1.0f)
-		{
-			m_framesPerSecond = frameCounter;
-			FPSTimer -= 1.0f;
-			frameCounter = 0;
-		}
-
-		m_deltaTime = (float)m_frameTime;//1.0f/(float)m_framesPerSecond;
-
-		if(m_fixedDeltaTime < m_deltaTime)
+		/*if deltaTime was less than the current fixedDeltaTime, set fixedDeltaTime to equal deltaTime*/
+		if( m_fixedDeltaTime < m_deltaTime )
 		{
 			m_fixedDeltaTime = m_deltaTime;
-			m_fixedUpdatesPerSecond = m_framesPerSecond;
-		}else
+			m_fixedUpdatesPerSecond = (int)(1.0 / m_frameTime);
+
+		} else
 		{
-			m_fixedDeltaTime = m_oneOverTUPS;
+			m_fixedDeltaTime = (float)m_oneOverTUPS;
 			m_fixedUpdatesPerSecond = m_targetUpdatesPerSecond;
+		}
+
+		/*if enough time has passed, it is time to do a fixed update*/
+		if( elapsedTime >= m_fixedDeltaTime )
+		{
+			m_doFixedUpdate = true;
+		}
+
+		/*calculates the current FPS once per second*/
+		if( elapsedTime >= 1.0 )
+		{
+			m_framesPerSecond = m_frameCount - lastFPSFrame;
+			elapsedTime -= 1.0;
+			lastFPSFrame = m_frameCount;
 		}
 	}
 
@@ -86,28 +79,8 @@ namespace Kiwi
 			m_targetUpdatesPerSecond = updatesPerSecond;
 		}
 
-		m_oneOverTUPS = 1.0f/(float)m_targetUpdatesPerSecond;
-		m_fixedDeltaTime = m_oneOverTUPS;
+		m_oneOverTUPS = 1.0/(double)m_targetUpdatesPerSecond;
 
-	}
-
-	float GameTimer::GetFixedDeltaTime()const
-	{
-
-		return m_fixedDeltaTime;
-
-	}
-
-	bool GameTimer::QueryFixedUpdate()
-	{
-
-		if(m_doFixedUpdate == true)
-		{
-			m_doFixedUpdate = false;
-			return true;
-		}
-
-		return false;
 	}
 
 };

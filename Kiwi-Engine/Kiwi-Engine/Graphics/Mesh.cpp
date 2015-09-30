@@ -7,7 +7,7 @@
 namespace Kiwi
 {
 
-	Mesh::Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer ):
+	Mesh::Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, unsigned int vertexCount ):
 		IAsset(name, L"StaticMesh")
 	{
 
@@ -21,6 +21,13 @@ namespace Kiwi
 		m_instanceCount = 0;
 		m_instanceCapacity = 0;
 		m_assetFiles.push_back( file );
+
+		if( vertexCount != 0 )
+		{
+			//create the dynamic vertex and index buffers
+			m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"/VertexBuffer", renderer, vertexCount );
+			m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"/IndexBuffer", renderer, vertexCount );
+		}
 
 	}
 

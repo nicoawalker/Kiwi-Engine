@@ -11,11 +11,11 @@ namespace Kiwi
 	HighResolutionTimer::HighResolutionTimer()
 	{
 
-		m_countsPerSecond = 1.0;
+		m_countsPerSecond = 0.0;
 		m_counterStart = 0;
 		m_frameCount = 0;
-		m_frameTimeOld = 1;
-		m_frameTime = 1.0;
+		m_frameTimeOld = 0;
+		m_frameTime = 0.0;
 		m_totalTime = 0.0;
 
 		m_started = false;
@@ -40,6 +40,7 @@ namespace Kiwi
 		//now get the current time (in counts)
 		QueryPerformanceCounter(&freqCount);
 		m_counterStart = freqCount.QuadPart;
+		m_frameTimeOld = m_counterStart;
 
 		m_started = true;
 
@@ -55,26 +56,26 @@ namespace Kiwi
 	void HighResolutionTimer::Reset()
 	{
 
-		m_countsPerSecond = 1.0;
+		m_countsPerSecond = 0.0;
 		m_counterStart = 0;
 		m_frameCount = 0;
-		m_frameTimeOld = 1;
-		m_frameTime = 1.0;
+		m_frameTimeOld = 0;
+		m_frameTime = 0.0;
 		m_totalTime = 0.0;
 
 	}
 
-	float HighResolutionTimer::GetTotalTime()const
+	double HighResolutionTimer::GetTotalTime()const
 	{
 
-		return (float)m_totalTime;
+		return m_totalTime;
 
 	}
 
-	float HighResolutionTimer::GetFrameTime()const
+	double HighResolutionTimer::GetFrameTime()const
 	{
 
-		return (float)m_frameTime;
+		return m_frameTime;
 
 	}
 
@@ -96,14 +97,15 @@ namespace Kiwi
 
 		if(m_countsPerSecond != 0.0)
 		{
-			m_frameTime = ((float)tickCount)/(float)m_countsPerSecond;
+			m_frameTime = ((double)tickCount)/m_countsPerSecond;
+
 		}else
 		{
 			m_frameTime = 1.0;
 		}
 
-		
-		//Kiwi::clamp(m_frameTime, 0.000001, 1.0);
+		m_frameCount += 1;
+
 	}
 
 };

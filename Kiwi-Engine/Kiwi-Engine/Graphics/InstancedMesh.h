@@ -22,12 +22,18 @@ namespace Kiwi
 	public:
 
 		/*creates an empty mesh*/
-		InstancedMesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer ):
-			Mesh(name, file, renderer)
+		InstancedMesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, unsigned int vertexCount = 0, unsigned int instanceCount = 0 ):
+			Mesh(name, file, renderer, vertexCount)
 		{
 
 			m_isInstanced = true;
 			m_instanceBuffer = 0;
+
+			if( instanceCount != 0 )
+			{
+				//create an empty instance buffer large enough to fit all of the instances
+				m_instanceBuffer = new Kiwi::VertexBuffer<InstanceDataType>( m_name + L"/InstanceBuffer", m_renderer, instanceCount );
+			}
 
 		}
 
@@ -41,7 +47,6 @@ namespace Kiwi
 
 		}
 
-		//Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, const Kiwi::MeshSubset& subset );
 		InstancedMesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, std::vector<Kiwi::Mesh::Subset> subsetList ):
 			Mesh(name, file renderer, subsetList)
 		{
@@ -80,7 +85,7 @@ namespace Kiwi
 			ID3D11Buffer* vertexBuffers[2] = { vBuffer, instanceBuffer };
 
 			// set the vertex and instance buffers to active
-			deviceCon->IASetVertexBuffers( 0, 2, &vBuffer, &strides, &offsets );
+			deviceCon->IASetVertexBuffers( 0, 2, vertexBuffers, strides, offsets );
 
 			// same for index buffer
 			ID3D11Buffer* iBuffer = m_indexBuffer->GetD3DBuffer();
@@ -98,11 +103,11 @@ namespace Kiwi
 
 			if( m_instanceBuffer == 0 )
 			{
-				m_instanceBuffer = new Kiwi::VertexBuffer<InstanceDataType>( m_name + L"/InstanceBuffer", m_renderer, instanceData.size() );
+				m_instanceBuffer = new Kiwi::VertexBuffer<InstanceDataType>( m_name + L"/InstanceBuffer", m_renderer, (long)instanceData.size() );
 
 			} else if( m_instanceBuffer->GetCapacity() < instanceData.size() )
 			{
-				m_instanceBuffer->Resize( instanceData.size() );
+				m_instanceBuffer->Resize( (long)instanceData.size() );
 			}
 
 			m_instanceBuffer->SetData( instanceData );

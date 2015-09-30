@@ -194,12 +194,20 @@ namespace Kiwi
 		Kiwi::Vector2 GetMouseSpeed()const { return m_mouseSpeed; }
 
 		/*returns the current state of a keyboard key
-		possible values are:
+		possible return values are:
 		KEY_HELD: the key is currently being held down (and was down or pressed last frame)
 		KEY_RELEASED: the key was released this frame
 		KEY_PRESSED: the key was pressed this frame (and wasn't held last frame)
 		KEY_UP: the key is not being pressed, and no key event occured this frame*/
 		KEY_STATE QueryKeyState( KEY key ) { return m_keyboardState[key]; }
+
+		/*returns true if the key has the specified state
+		possible keyState values are:
+		KEY_HELD: the key is currently being held down (and was down or pressed last frame)
+		KEY_RELEASED: the key was released this frame
+		KEY_PRESSED: the key was pressed this frame (and wasn't held last frame)
+		KEY_UP: the key is not being pressed, and no key event occured this frame*/
+		bool QueryKeyState( KEY key, KEY_STATE keyState ) { return m_keyboardState[key] == keyState; }
 
 	};
 }

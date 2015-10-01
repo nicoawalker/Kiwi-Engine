@@ -8,8 +8,7 @@
 namespace Kiwi
 {
 
-	IRenderable::IRenderable( std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, std::wstring shader ) :
-		m_mesh( mesh )
+	IRenderable::IRenderable( std::wstring name, Kiwi::Entity* parentEntity, Kiwi::Mesh* mesh, std::wstring shader )
 	{
 
 		if( parentEntity == 0 )
@@ -21,14 +20,14 @@ namespace Kiwi
 		m_renderableName = name;
 		m_shaderEffect = 0;
 		m_renderType = RENDER_3D;
+		m_mesh = mesh;
 		m_renderTarget = L"BackBuffer";
 		m_currentMeshSubset = 0;
 		m_shader = shader;
 
 	}
 
-	IRenderable::IRenderable(std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, Kiwi::IShaderEffect* effect ):
-		m_mesh(mesh)
+	IRenderable::IRenderable(std::wstring name, Kiwi::Entity* parentEntity, Kiwi::Mesh* mesh, Kiwi::IShaderEffect* effect )
 	{
 
 		if( parentEntity == 0 )
@@ -39,6 +38,7 @@ namespace Kiwi
 		m_parentEntity = parentEntity;
 		m_renderableName = name;
 		m_shaderEffect = effect;
+		m_mesh = mesh;
 		if( m_shaderEffect ) m_shader = m_shaderEffect->GetShaderName();
 		m_renderType = RENDER_3D;
 		m_renderTarget = L"BackBuffer";
@@ -49,7 +49,7 @@ namespace Kiwi
 	IRenderable::~IRenderable()
 	{
 
-		//SAFE_DELETE( m_mesh );
+		SAFE_DELETE( m_mesh );
 		SAFE_DELETE( m_shaderEffect );
 
 	}
@@ -66,7 +66,7 @@ namespace Kiwi
 
 	}*/
 
-	void IRenderable::SetMesh( const Kiwi::Mesh& mesh )
+	void IRenderable::SetMesh( Kiwi::Mesh* mesh )
 	{
 		
 		m_mesh = mesh;
@@ -77,9 +77,12 @@ namespace Kiwi
 	void IRenderable::SetCurrentMeshSubset( unsigned int subsetIndex )
 	{
 
-		if( subsetIndex <= m_mesh.GetSubsetCount() )
+		if( m_mesh )
 		{
-			m_currentMeshSubset = subsetIndex;
+			if( subsetIndex <= m_mesh->GetSubsetCount() )
+			{
+				m_currentMeshSubset = subsetIndex;
+			}
 		}
 
 	}
@@ -87,7 +90,7 @@ namespace Kiwi
 	Kiwi::Mesh::Subset* IRenderable::GetCurrentMeshSubset()
 	{
 
-		return m_mesh.GetSubset( m_currentMeshSubset );
+		return (m_mesh) ? m_mesh->GetSubset( m_currentMeshSubset ) : 0;
 
 	}
 

@@ -26,7 +26,7 @@ namespace Kiwi
 
 		Kiwi::Entity* m_parentEntity;
 
-		Kiwi::Mesh m_mesh;
+		Kiwi::Mesh* m_mesh;
 
 		Kiwi::IShaderEffect* m_shaderEffect;
 
@@ -42,19 +42,19 @@ namespace Kiwi
 
 	public:
 
-		IRenderable( std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, std::wstring shader );
-		IRenderable( std::wstring name, Kiwi::Entity* parentEntity, const Kiwi::Mesh& mesh, Kiwi::IShaderEffect* shaderEffect );
+		IRenderable( std::wstring name, Kiwi::Entity* parentEntity, Kiwi::Mesh* mesh, std::wstring shader );
+		IRenderable( std::wstring name, Kiwi::Entity* parentEntity, Kiwi::Mesh* mesh, Kiwi::IShaderEffect* shaderEffect );
 		virtual ~IRenderable();
 
 		/*binds the renderable's mesh to the rendering pipeline*/
-		virtual void Bind( Kiwi::Renderer* renderer ) { m_mesh.Bind( renderer ); }
+		virtual void Bind( Kiwi::Renderer* renderer ) { if( m_mesh ) m_mesh->Bind( renderer ); }
 
 		virtual void OnPreRender(Kiwi::Renderer* renderer, Kiwi::Scene* scene) {}
 		virtual void OnPostRender(Kiwi::Renderer* renderer, Kiwi::Scene* scene) {}
 
 		virtual void SetRenderTarget( std::wstring renderTarget ) { m_renderTarget = renderTarget; }
 		//virtual void SetEffect( const Kiwi::IShaderEffect& effect );
-		virtual void SetMesh( const Kiwi::Mesh& mesh );
+		virtual void SetMesh( Kiwi::Mesh* mesh );
 
 		//sets one of the mesh's subsets as the currently active/rendering subset
 		virtual void SetCurrentMeshSubset( unsigned int subsetIndex );
@@ -62,7 +62,7 @@ namespace Kiwi
 		virtual Kiwi::Mesh::Subset* GetCurrentMeshSubset();
 		
 		virtual std::wstring GetName()const { return m_renderableName; }
-		virtual Kiwi::Mesh* GetMesh() { return &m_mesh; }
+		virtual Kiwi::Mesh* GetMesh() { return m_mesh; }
 		virtual IRenderable::RenderType GetRenderType()const { return m_renderType; }
 		virtual std::wstring GetRenderTarget()const { return m_renderTarget; }
 		virtual Kiwi::Entity* GetParentEntity()const { return m_parentEntity; }

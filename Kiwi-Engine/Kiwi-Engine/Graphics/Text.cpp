@@ -22,7 +22,7 @@ namespace Kiwi
 		m_maxCharacters = maxCharacters;
 		m_textColor = Kiwi::Color( 1.0f, 1.0f, 1.0f, 1.0f );
 
-		Kiwi::Mesh textMesh( name + L"/Mesh", L"", m_scene->GetRenderer() );
+		Kiwi::Mesh* textMesh = new Kiwi::Mesh( name + L"/Mesh", L"", m_scene->GetRenderer() );
 		m_renderable = new Kiwi::IRenderable( name + L"/Renderable", this, textMesh, L"Default2DShader" );
 
 	}

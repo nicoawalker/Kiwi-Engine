@@ -185,11 +185,11 @@ namespace Kiwi
 
 						if( mesh != 0 )
 						{
+
 							//bind the mesh's buffers
 							try
 							{
-								//bind will throw if the mesh does not have a valid renderer or if
-								//the buffers have not been initialized
+								//bind will throw if the mesh buffers have not been initialized
 								mesh->Bind( m_renderer );
 
 							} catch( Kiwi::Exception& e )
@@ -282,6 +282,7 @@ namespace Kiwi
 									//bind will throw if the mesh does not have a valid renderer or if
 									//the buffers have not been initialized
 									mesh->Bind( m_renderer );
+
 								} catch( Kiwi::Exception& e )
 								{
 									//cant render this mesh, move on to the next one

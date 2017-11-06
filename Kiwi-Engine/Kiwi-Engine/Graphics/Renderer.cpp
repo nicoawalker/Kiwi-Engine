@@ -395,7 +395,7 @@ namespace Kiwi
 		std::unique_lock<std::mutex> ulock( m_renderer_M );
 
 		if( m_currentSettings.renderTarget != renderTexture ) this->SetRenderTarget( renderTexture );
-		this->_RenderActiveTarget();
+		//this->_RenderActiveTarget();
 	}
 
 	void Renderer::RenderToTexture( const std::wstring& renderTexture )
@@ -406,7 +406,7 @@ namespace Kiwi
 		if( renderTarget == nullptr ) return;
 
 		if( m_currentSettings.renderTarget != renderTarget ) this->SetRenderTarget( renderTarget );
-		this->_RenderActiveTarget();
+		//this->_RenderActiveTarget();
 	}
 
 	void Renderer::RenderToTexture( Kiwi::RenderTarget* renderTexture, std::vector<Kiwi::Mesh*> meshesToRender )
@@ -421,7 +421,7 @@ namespace Kiwi
 
 		/*set the active render target and render the temporary render queue to it*/
 		if( m_currentSettings.renderTarget != renderTexture ) this->SetRenderTarget( renderTexture );
-		this->_RenderActiveTarget(tempQueue);
+		//this->_RenderActiveTarget(tempQueue);
 	}
 
 	HRESULT Renderer::MapResource( ID3D11Resource* resource, unsigned int subResource, D3D11_MAP mapType, unsigned int flags, D3D11_MAPPED_SUBRESOURCE* mappedResource )

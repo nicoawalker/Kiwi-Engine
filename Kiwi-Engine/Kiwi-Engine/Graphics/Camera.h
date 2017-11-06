@@ -7,6 +7,7 @@
 #include "../Core/Entity.h"
 
 #include <string>
+#include <set>
 
 namespace Kiwi
 {
@@ -18,14 +19,10 @@ namespace Kiwi
 	{
 	protected:
 
-		Kiwi::Viewport* m_viewport;
-
 		Kiwi::Matrix4 m_viewMatrix;
 		Kiwi::Matrix4 m_viewMatrix2D;
 		Kiwi::Matrix4 m_projMatrix;
 		Kiwi::Matrix4 m_orthoMatrix;
-
-		Kiwi::Vector2 m_viewportDimensions;
 
 		float m_aspectRatio;
 		float m_fov;
@@ -38,11 +35,12 @@ namespace Kiwi
 
 	public:
 
-		Camera( std::wstring name );// , Kiwi::Scene* scene);
-		Camera( std::wstring name, /*Kiwi::Scene* scene,*/ float FOV, float aspectRatio, float nearClip, float farClip );
+		Camera( std::wstring name, Kiwi::Scene& scene);
+		Camera( std::wstring name, Kiwi::Scene& scene, float FOV, float aspectRatio, float nearClip, float farClip );
 		virtual ~Camera() {}
 
-		virtual void SetViewport(Kiwi::Viewport* viewport);
+		/*Builds the camera's orthographic projection matrix for the viewport*/
+		void SetViewport( Kiwi::Viewport* viewport );
 
 		/*creates the view matrix based on the camera's current rotation and position*/
 		virtual void Update();
@@ -50,6 +48,7 @@ namespace Kiwi
 		void SetNearClipDistance(float distance);
 		void SetFarClipDistance(float distance);
 		void SetFOV(float fov);
+		void SetAspectRatio( double aspectRatio);
 
 		float GetNearClipDistance()const { return m_nearClipDistance; }
 		float GetFarClipDistance()const { return m_farClipDistance; }

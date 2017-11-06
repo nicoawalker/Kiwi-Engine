@@ -12,7 +12,7 @@ namespace Kiwi
 	{
 	public:
 
-		float red, green, blue, alpha;
+		double red, green, blue, alpha;
 
 	private:
 
@@ -23,13 +23,13 @@ namespace Kiwi
 
 		Color();
 		/*creates and initializes the color. color channels are clamped between 0.0f and 1.0f*/
-		Color(float r, float g, float b, float a);
+		Color(double r, double g, double b, double a);
 		Color(const Kiwi::Color& color);
 
 		~Color() {}
 
 		/*sets the color. color channels are clamped between 0.0f and 1.0f*/
-		void Set(float r, float g, float b, float a);
+		void Set(double r, double g, double b, double a);
 		void Set(const Kiwi::Color& color);
 		//sets this color to the values in a vector ( x:r, y:g, z:b, w:a)
 		void Set(const Kiwi::Vector4& vector);
@@ -44,6 +44,9 @@ namespace Kiwi
 		void operator= (const Kiwi::Vector4& vector);
 		//adds to this color
 		void operator+= (const Kiwi::Color& color);
+
+		bool operator== ( const Kiwi::Color& color )const;
+		bool operator!= ( const Kiwi::Color& other )const;
 
 	};
 };

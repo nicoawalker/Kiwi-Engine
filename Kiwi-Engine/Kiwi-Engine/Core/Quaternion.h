@@ -2,6 +2,7 @@
 #define _KIWI_QUATERNION_H_
 
 #include "Vector3.h"
+#include "Vector3d.h"
 #include "Matrix4.h"
 
 #include <string>
@@ -18,7 +19,7 @@ namespace Kiwi
 
 	public:
 
-		float w, x, y, z;
+		double w, x, y, z;
 
 	public:
 
@@ -26,10 +27,12 @@ namespace Kiwi
 		Quaternion();
 
 		/*creates a quaternion initialized to the given values*/
-		Quaternion(float s, float x, float y, float z);
+		Quaternion(double w, double x, double y, double z);
 
-		/*converts a quaternion rotated around the axis by rotationAmount (in degrees)*/
-		Quaternion(const Kiwi::Vector3& axis, float angle);
+		//Quaternion( const Kiwi::Vector3& axis, float angle );
+
+		/*creates a quaternion rotated around an axis by rotationAmount radians*/
+		Quaternion(const Kiwi::Vector3d& axis, double angle);
 
 		/*copies the other quaternion into this one*/
 		Quaternion(const Quaternion& otherQuat);
@@ -37,9 +40,10 @@ namespace Kiwi
 		~Quaternion();
 
 		//manually set new values for the quaternion
-		void Set(float w, float x, float y, float z);
+		void Set( double w, double x, double y, double z );
+
 		//sets the quaternion to be a rotation of 'angle' degrees around 'axis'
-		void Set(const Kiwi::Vector3& axis, float angle);
+		void Set(const Kiwi::Vector3& axis, double angle);
 
 		/*returns a new quaternion equal to this quaternion scaled by a value*/
 		Quaternion Scaled(float scale)const;
@@ -60,18 +64,21 @@ namespace Kiwi
 		Quaternion Inverse()const;
 
 		/*returns the dot product of this quaternion and the other one*/
-		float Dot(const Quaternion& quat)const;
+		double Dot(const Quaternion& quat)const;
 
 		/*rotates a point around this quaternion and returns the result*/
-		Kiwi::Vector3 RotatePoint(const Kiwi::Vector3& point)const;
+		Kiwi::Vector3d RotatePoint(const Kiwi::Vector3& point)const;
+
+		/*rotates a point around this quaternion and returns the result*/
+		Kiwi::Vector3d RotatePoint( const Kiwi::Vector3d& point )const;
 
 		//returns the norm of the quaternion
-		float Norm()const;
+		double Norm()const;
 
-		Kiwi::Vector3 GetEulerAngles()const;
+		Kiwi::Vector3d GetEulerAngles();
 
 		/*recalculates the rotation matrix*/
-		Kiwi::Matrix4 ToRotationMatrix()const;
+		Kiwi::Matrix4 ToRotationMatrix();
 
 		//returns a formatted string of this quaternion: "w, x, y, z"
 		std::wstring ToString()const;
@@ -79,10 +86,14 @@ namespace Kiwi
 		/*returns the result of the cross product between the two quaternions*/
 		Quaternion operator* (const Quaternion& quat)const;
 
+		Quaternion operator- ( const Quaternion& quat )const;
+
 		/*makes a copy of the given quaternion*/
 		void operator= (const Quaternion& quat);
 
 		bool operator== (const Quaternion& quat)const;
+
+		bool operator!= ( const Quaternion& quat )const;
 
 		//returns the identity quaternion (AKA quaternion which represents default/no rotation)
 		static Quaternion Identity() { return Quaternion(1.0f, 0.0f, 0.0f, 0.0f); }

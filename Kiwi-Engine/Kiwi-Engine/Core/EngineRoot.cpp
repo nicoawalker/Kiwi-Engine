@@ -1,36 +1,54 @@
 #include "EngineRoot.h"
-#include "Logger.h"
-#include "IConsole.h"
-#include "RawInputWrapper.h"
+#include "Console.h"
+#include "Exception.h"
+#include "IEngineApp.h"
+
+#include "TextureFactory.h"
+#include "FontFactory.h"
+#include "RigidbodyComponentFactory.h"
+#include "StaticModelFactory.h"
+#include "MD5ModelFactory.h"
+#include "MaterialFactory.h"
+
+#include "Threading\LoggingWorker.h"
+
+#include "..\Types.h"
+
+#include "../Factories/BasicShaderFactory.h"
+#include "..\Factories\Basic2DShaderFactory.h"
+#include "../Factories/ShaderFactory.h"
+#include "..\Factories\BasicInstanceShaderFactory.h"
+
+#include "../Graphics/UI/WidgetFactory.h"
+
+#include <fstream>
+#include <ctime>
 
 #include <Windows.h>
 
 namespace Kiwi
 {
 
-	Kiwi::Logger _Logger;
-
-	EngineRoot::EngineRoot():
-		m_sceneManager( this )
+	EngineRoot::EngineRoot()
 	{
-
-		m_console = 0;
 		m_gameTimer.SetTargetUpdatesPerSecond( 60 );
 
+		m_globalUIScale = 1.0;
+		m_initialized = false;
+		m_shutdown = false;
+		m_engineRunning = false;
 	}
 
 	EngineRoot::~EngineRoot()
 	{
-
-		SAFE_DELETE( m_console );
-
-		_Logger.Shutdown();
-
+		if( m_shutdown == false )
+		{
+			MessageBox( NULL, L"Engine not shutdown properly", L"Engine not shutdown properly", MB_OK );
+		}
 	}
 
 	void EngineRoot::_MainLoop()
 	{
-
 		m_gameTimer.StartTimer();
 		m_gameTimer.Update();
 
@@ -39,74 +57,124 @@ namespace Kiwi
 		{
 			m_gameTimer.Update();
 
-			this->_PumpMessages();
+			m_threadPool.Update();
 
-			if( m_gameWindow ) m_gameWindow->Update( m_gameTimer.GetDeltaTime() );
+			m_inputTranslator.Update();
+
+			m_assetManager.Update();
+
+			/*update render windows, which will update keyboard and mouse input*/
+			m_graphicsManager.Update();
+
+			if( this->_PumpMessages() == false ) break;
 
 			//if enough time has passed, send a fixed update
 			if( m_gameTimer.QueryFixedUpdate() )
 			{
-				this->BroadcastEvent( Kiwi::FrameEvent( this, Kiwi::FrameEvent::EventType::TIMED_EVENT ) );
+				this->EmitFrameEvent( std::make_shared<Kiwi::FrameEvent>( *this, FrameEventType::FIXED_UPDATE ) );
 
-				if( m_console ) m_console->OnFixedUpdate();
+				m_physicsSystem.FixedUpdate();
 			}
 
-			//broadcast a new untimed frame event
-			this->BroadcastEvent( Kiwi::FrameEvent( this, Kiwi::FrameEvent::EventType::UNTIMED_EVENT ) );
+			this->EmitFrameEvent( std::make_shared<Kiwi::FrameEvent>( *this, FrameEventType::UPDATE ) );
 
-			/*if( !m_graphicsCore->RenderFrame() )
-			{
-			m_engineRunning = false;
-			break;
-			}*/
-
-			if( m_console ) m_console->OnUpdate();
-
+			m_sceneManager.Render();
 		}
-
+		
+		this->Shutdown();
 	}
 
-	void EngineRoot::_PumpMessages()
+	bool EngineRoot::_PumpMessages()
 	{
-
 		MSG msg;
 		while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
 		{
+			if( msg.message == WM_QUIT  )
+			{
+				return false;
+			}
+
 			TranslateMessage( &msg );
 			DispatchMessage( &msg );
 		}
 
+		return true;
 	}
 
-	void EngineRoot::Start( std::wstring logFile, Kiwi::RenderWindow* gameWindow )
+	void EngineRoot::Initialize( std::wstring logFile )
 	{
+		std::lock_guard<std::recursive_mutex> lockGuard( m_engineMutex );
 
-		assert( gameWindow != 0 );
+		/*start the output logging thread*/
+		m_logFile = logFile;
+		m_logWorker = std::make_shared<LoggingWorker>( logFile );
 
-		m_gameWindow = gameWindow;
+		m_threadPool.RunAsync( m_logWorker );
 
-		_Logger.Initialize( logFile );
+		/*create and add the default factories for creating game objects*/
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::RigidbodyComponentFactory>( new Kiwi::RigidbodyComponentFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::WidgetFactory>( new Kiwi::WidgetFactory() ) );
+
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::TextureFactory>( new Kiwi::TextureFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::FontFactory>( new Kiwi::FontFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::BasicShaderFactory>( new Kiwi::BasicShaderFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::BasicInstanceShaderFactory>( new Kiwi::BasicInstanceShaderFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::Basic2DShaderFactory>( new Kiwi::Basic2DShaderFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::ShaderFactory>( new Kiwi::ShaderFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::StaticModelFactory>( new Kiwi::StaticModelFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::MD5ModelFactory>( new Kiwi::MD5ModelFactory() ) );
+		this->RegisterNewFactory( std::unique_ptr<Kiwi::MaterialFactory>( new Kiwi::MaterialFactory() ) );
+
+		m_assetManager.Initialize();
+
+		m_initialized = true;
+	}
+
+	void EngineRoot::Shutdown()
+	{
+		std::lock_guard<std::recursive_mutex> lockGuard( m_engineMutex );
+
+		m_threadPool.ShutdownAll();
+
+		m_sceneManager.Shutdown();
+		m_physicsSystem.Shutdown();
+
+		m_assetManager.Shutdown();
+		m_graphicsManager.Shutdown();
+
+		m_engineRunning = false;
+		m_shutdown = true;
+	}
+
+	void EngineRoot::Start()
+	{
+		if( m_engineRunning ) return;
+
+		if( m_initialized == false )
+		{
+			throw Kiwi::Exception( L"EngineRoot::Start", L"Engine started before initialization. Call EngineRoot::Initialize first", KIWI_EXCEPTION::NOTINITIALIZED );
+		}
 
 		this->_MainLoop();
-
 	}
 
 	void EngineRoot::Stop()
 	{
-
 		m_engineRunning = false;
-
 	}
 
-	void EngineRoot::SetMouseSensitivity( const Kiwi::Vector2& sens )
+	void EngineRoot::Log( std::wstring log )
 	{
+		std::lock_guard<std::recursive_mutex> lockGuard( m_engineMutex );
 
-		auto rwItr = m_graphicsManager.m_renderWindows.Front();
-		for( ; rwItr != m_graphicsManager.m_renderWindows.Back(); rwItr++ )
-		{
-			rwItr->second->GetInput()->SetMouseSpeed( sens );
-		}
+		m_logWorker->Log( log );
+	}
 
+	void EngineRoot::RegisterNewFactory( std::unique_ptr<Kiwi::IFactory> factory )
+	{
+		std::lock_guard<std::recursive_mutex> lockGuard( m_engineMutex );
+
+		m_factories.insert( std::make_pair( factory->GetObjectType(), std::move( factory ) ) );
 	}
 
 }

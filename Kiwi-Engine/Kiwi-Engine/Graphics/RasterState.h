@@ -25,6 +25,7 @@ namespace Kiwi
 	protected:
 
 		std::wstring m_name;
+		long m_uid;
 
 		ID3D11RasterizerState* m_rasterState;
 
@@ -38,6 +39,7 @@ namespace Kiwi
 		ID3D11RasterizerState* GetD3DRasterState()const { return m_rasterState; }
 
 		std::wstring GetName()const { return m_name; }
+		long GetUID()const { return m_uid; }
 
 	};
 };

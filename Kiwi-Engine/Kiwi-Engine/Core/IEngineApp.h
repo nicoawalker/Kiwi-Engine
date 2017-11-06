@@ -3,7 +3,10 @@
 
 #include "EngineRoot.h"
 
-#include "../Graphics/IWindowEventListener.h"
+#include "..\Events\EventHandling.h"
+#include "../Events/WindowEvent.h"
+
+#include <memory>
 
 namespace Kiwi
 {
@@ -11,27 +14,35 @@ namespace Kiwi
 	class EngineRoot;
 
 	class IEngineApp:
-		public Kiwi::IWindowEventListener,
-		public Kiwi::IFrameEventListener
+		public Kiwi::IFrameEventReceiver
 	{
+	private:
+
+		std::unique_ptr<Kiwi::EngineRoot> m_engine;
+
+	private:
+
+		Kiwi::EventResponse _OnFrameEvent( std::shared_ptr<Kiwi::FrameEvent> evt );
+
 	protected:
 
-		Kiwi::EngineRoot* m_engine;
-		Kiwi::GraphicsManager* m_graphicsManager;
-		Kiwi::SceneManager* m_sceneManager;
+		virtual void _OnUpdate() {}
+		virtual void _OnFixedUpdate() {}
+		virtual void _OnShutdown() {}
+		//virtual void _OnRenderStart() {}
+		//virtual void _OnRenderEnd() {}
 
 	public:
 
 		IEngineApp();
 		virtual ~IEngineApp();
 
-		virtual void Shutdown() = 0;
+		void Update() { this->_OnUpdate(); }
+		void FixedUpdate() { this->_OnFixedUpdate(); }
+
+		void Shutdown();
 
 		virtual void Launch() = 0;
-
-		virtual void OnWindowEvent( const Kiwi::WindowEvent& evt ) {}
-		virtual void OnUpdate( const Kiwi::FrameEvent& evt ) {}
-		virtual void OnFixedUpdate( const Kiwi::FrameEvent& evt ) {}
 
 	};
 };

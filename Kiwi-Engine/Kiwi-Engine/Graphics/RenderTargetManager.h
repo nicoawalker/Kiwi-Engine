@@ -3,32 +3,47 @@
 
 #include "RenderTarget.h"
 
-#include "../Core/ComponentContainer.h"
-
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <memory>
 
 namespace Kiwi
 {
+
+	class Renderer;
+
+	struct RenderTargetList
+	{
+		std::vector<Kiwi::RenderTarget*> targets;
+	};
 
 	class RenderTargetManager
 	{
 	protected:
 
-		Kiwi::ComponentContainer<std::wstring, Kiwi::RenderTarget> m_renderTargets;
+		Kiwi::Renderer* m_renderer;
+
+		std::unordered_map<std::wstring, std::unique_ptr<Kiwi::RenderTarget>> m_renderTargets;
 
 	public:
 
-		RenderTargetManager() {}
+		RenderTargetManager( Kiwi::Renderer& renderer );
 		~RenderTargetManager() {}
 
-		void AddRenderTarget( Kiwi::RenderTarget* renderTarget );
+		Kiwi::RenderTarget* CreateRenderTarget( std::wstring name, Kiwi::Scene* scene, const Kiwi::Vector2d& dimensions );
 
-		Kiwi::RenderTarget* FindRenderTargetWithName( std::wstring name ) { return m_renderTargets.Find( name ); }
+		Kiwi::RenderTarget* CreateRenderTarget( std::wstring name, Kiwi::Scene* scene, ID3D11Texture2D* texture, ID3D11ShaderResourceView* shaderResource, ID3D11RenderTargetView* renderTargetView );
 
-		void DestroyRenderTargetWithName( std::wstring name ) { m_renderTargets.Destroy( name ); }
-		void DestroyRenderTarget( Kiwi::RenderTarget* renderTarget ) { m_renderTargets.Destroy( renderTarget ); }
+		/*returns the render target with matching name, or 0 if no match is found*/
+		Kiwi::RenderTarget* FindRenderTarget( std::wstring name );
+
+		/*destroys the render target with matching name*/
+		void DestroyRenderTarget( std::wstring name );
+
+		Kiwi::RenderTargetList GetRenderTargetList();
+
+		void Shutdown();
 
 	};
 

@@ -39,6 +39,9 @@ namespace Kiwi
 		//true when it's time to do a fixedupdate call
 		bool m_doFixedUpdate;
 
+		//total number of frames that have occured
+		long long m_frameCount;
+
 	public:
 
 		GameTimer();
@@ -66,6 +69,8 @@ namespace Kiwi
 		/*Call on every update cycle to determine if a FixedUpdate should occur
 		this should be called only after the Update method is called*/
 		bool QueryFixedUpdate() { return m_doFixedUpdate; }
+
+		long long GetFrameCount()const { return m_frameCount; }
 
 	};
 };

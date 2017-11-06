@@ -2,30 +2,29 @@
 
 #include <sstream>
 
+#include <Windows.h>
+
 namespace Kiwi
 {
 
 	/*creates the identity quaternion*/
 	Quaternion::Quaternion()
 	{
-		x = y = z = 0.0f;
-		w = 1.0f;
+		x = y = z = 0.0;
+		w = 1.0;
 
 	}
 
 	/*creates a quaternion initialized to the given values*/
-	Quaternion::Quaternion(float w, float x, float y, float z)
+	Quaternion::Quaternion( double w, double x, double y, double z)
 	{
 		this->w = w;
 		this->x = x;
 		this->y = y;
 		this->z = z;
-
-		this->_Normalize();
-
 	}
 
-	Quaternion::Quaternion(const Kiwi::Vector3& axis, float angle)
+	/*Quaternion::Quaternion(const Kiwi::Vector3& axis, float angle)
 	{
 
 		angle = angle / 2.0f;
@@ -37,20 +36,26 @@ namespace Kiwi
 		y = axis.y * sinAngle;
 		z = axis.z * sinAngle;
 
-		this->_Normalize();
+	}*/
 
+	Quaternion::Quaternion( const Kiwi::Vector3d& axis, double angle )
+	{
+		angle = angle / 2.0;
+
+		double sinAngle = std::sin( angle );
+
+		w = std::cos( angle );
+		x = axis.x * sinAngle;
+		y = axis.y * sinAngle;
+		z = axis.z * sinAngle;
 	}
 
 	Quaternion::Quaternion(const Quaternion& otherQuat)
 	{
-
 		w = otherQuat.w;
 		x = otherQuat.x;
 		y = otherQuat.y;
 		z = otherQuat.z;
-
-		this->_Normalize();
-
 	}
 
 	Quaternion::~Quaternion()
@@ -58,74 +63,59 @@ namespace Kiwi
 
 	}
 
-	void Quaternion::Set(float w, float x, float y, float z)
+	void Quaternion::Set( double w, double x, double y, double z )
 	{
-
 		this->w = w;
 		this->x = x;
 		this->y = y;
 		this->z = z;
-
-		this->_Normalize();
-
 	}
 
-	void Quaternion::Set(const Kiwi::Vector3& axis, float angle)
+	void Quaternion::Set(const Kiwi::Vector3& axis, double angle)
 	{
+		angle = angle / 2.0;
 
-		angle = angle / 2.0f;
-
-		float sinAngle = std::sin(angle);
+		double sinAngle = std::sin(angle);
 
 		w = std::cos(angle);
 		x = axis.x * sinAngle;
 		y = axis.y * sinAngle;
 		z = axis.z * sinAngle;
-
-		this->_Normalize();
-
 	}
 
 	Quaternion Quaternion::Scaled(float scale)const
 	{
-
 		return Quaternion( w * scale, x * scale, y * scale, z * scale);
-
 	}
 
 	Quaternion Quaternion::Sum(const Quaternion& otherQuat)const
 	{
-
 		return Quaternion(w + otherQuat.w, x + otherQuat.x, y + otherQuat.y, z + otherQuat.z);
-
 	}
 
 	Quaternion Quaternion::Cross(const Quaternion& quat)const
 	{
-
-		float w2 = quat.w;
-		float x2 = quat.x;
-		float y2 = quat.y;
-		float z2 = quat.z;
+		double w2 = quat.w;
+		double x2 = quat.x;
+		double y2 = quat.y;
+		double z2 = quat.z;
 
 		Quaternion newQuat;
 
-		float qw = (w*w2) - (x*x2) - (y*y2) - (z*z2);
-		float qx = (w*x2) + (x*w2) + (y*z2) - (z*y2);
-		float qy = (w*y2) - (x*z2) + (y*w2) + (z*x2);
-		float qz = (w*z2) + (x*y2) - (y*x2) + (z*w2);
+		double qw = (w*w2) - (x*x2) - (y*y2) - (z*z2);
+		double qx = (w*x2) + (x*w2) + (y*z2) - (z*y2);
+		double qy = (w*y2) - (x*z2) + (y*w2) + (z*x2);
+		double qz = (w*z2) + (x*y2) - (y*x2) + (z*w2);
 
 		newQuat.Set(qw, qx, qy, qz);
 
 		return newQuat;
-
 	}
 
 	/*normalizes the quaternion*/
 	Quaternion Quaternion::Normalized()const
 	{
-		
-		float norm = this->Norm();
+		double norm = this->Norm();
 
 		if(norm != 0.0f)
 		{
@@ -134,69 +124,70 @@ namespace Kiwi
 		{
 			return Quaternion( 0.0f, 0.0f, 0.0f, 0.0f );
 		}
-		
 	}
 
 	/*conjugates the quaternion*/
 	Quaternion Quaternion::Conjugate()const
 	{
-
 		return Quaternion( w, x * -1.0f, y * -1.0f, z * -1.0f);
-
 	}
 
 	Quaternion Quaternion::Inverse()const
 	{
-
 		Quaternion quat(this->Conjugate());
 
-		float norm = this->Norm();
+		double norm = this->Norm();
 
-		if( norm != 0.0f)
+		if( norm != 0.0)
 		{
-			return quat.Scaled( ( 1.0f / (norm*norm) ) );
+			return quat.Scaled( ( 1.0 / (norm*norm) ) );
 		}else
 		{
-			return Quaternion( 0.0f, 0.0f, 0.0f, 0.0f );
+			return Quaternion( 0.0, 0.0, 0.0, 0.0 );
 		}
-
 	}
 
 	/*returns the dot product of this quaternion and the other one*/
-	float Quaternion::Dot(const Quaternion& otherQuat)const
+	double Quaternion::Dot(const Quaternion& otherQuat)const
 	{
-
 		return ( (w * otherQuat.w) + (x * otherQuat.x) + (y * otherQuat.y) + (z * otherQuat.z) );
-
 	}
 
-	Kiwi::Vector3 Quaternion::RotatePoint(const Kiwi::Vector3& point)const
+	Kiwi::Vector3d Quaternion::RotatePoint(const Kiwi::Vector3& point)const
 	{
-
 		//put the point into a quaternion to do the rotation
 		Quaternion vq(0.0f, point.x, point.y, point.z);
 
 		Quaternion qr = this->Cross(vq);
 		qr = qr.Cross(this->Conjugate());
 
-		return Kiwi::Vector3(qr.x, qr.y, qr.z);
+		return Kiwi::Vector3d(qr.x, qr.y, qr.z);
+	}
 
+	Kiwi::Vector3d Quaternion::RotatePoint( const Kiwi::Vector3d& point )const
+	{
+		//put the point into a quaternion to do the rotation
+		Quaternion vq( 0.0, point.x, point.y, point.z );
+
+		Quaternion qr = this->Cross( vq );
+		qr = qr.Cross( this->Conjugate() );
+
+		return Kiwi::Vector3d( qr.x, qr.y, qr.z );
 	}
 
 	//returns the norm of the quaternion
-	float Quaternion::Norm()const
+	double Quaternion::Norm()const
 	{
-
 		float total = w*w + x*x + y*y + z*z;
-		return std::sqrtf( total );
-
+		return std::sqrt( total );
 	}
 
 	/*returns a vector representing the euler angles (in radians) that make up this quaternion*/
-	Kiwi::Vector3 Quaternion::GetEulerAngles()const
+	Kiwi::Vector3d Quaternion::GetEulerAngles()
 	{
+		this->_Normalize();
 
-		Kiwi::Vector3 eulerAngles(0.0f, 0.0f, 0.0f);
+		Kiwi::Vector3d eulerAngles(0.0f, 0.0f, 0.0f);
 
 		//p0 is the quaternion constant (w)
 		//p1-3 represent the remaining components of the quaternion *in rotational order*
@@ -220,6 +211,7 @@ namespace Kiwi
 		if(r23 >= 0.999847f)
 		{
 			r23 = 0.999847f;
+
 		}else if(r23 <= -0.999847f)
 		{
 			r23 = -0.999847f;
@@ -231,12 +223,12 @@ namespace Kiwi
 		eulerAngles.z = std::atan2( r13, r12);
 
 		return eulerAngles;
-
 	}
 
-	Kiwi::Matrix4 Quaternion::ToRotationMatrix()const
+	Kiwi::Matrix4 Quaternion::ToRotationMatrix()
 	{
-		
+		this->_Normalize();
+
 		Kiwi::Matrix4 rotationMatrix;
 		
 		rotationMatrix.a1 = 1.0f - ( 2.0f * ( y*y + z*z ) );
@@ -254,37 +246,39 @@ namespace Kiwi
 		rotationMatrix.d4 = 1.0f;
 		
 		return rotationMatrix;
-
 	}
 
 	std::wstring Quaternion::ToString()const
 	{
-
 		std::wstringstream str;
 		str << "w:" << w << ", x:" << x << ", y:" << y << ", z:" << z;
 		return str.str();
-
 	}
 
 	Quaternion Quaternion::operator* (const Quaternion& quat)const
 	{
-
-		float w2 = quat.w;
-		float x2 = quat.x;
-		float y2 = quat.y;
-		float z2 = quat.z;
+		double w2 = quat.w;
+		double x2 = quat.x;
+		double y2 = quat.y;
+		double z2 = quat.z;
 
 		Quaternion newQuat;
 
-		float qw = (w*w2) - (x*x2) - (y*y2) - (z*z2);
-		float qx = (w*x2) + (x*w2) + (y*z2) - (z*y2);
-		float qy = (w*y2) - (x*z2) + (y*w2) + (z*x2);
-		float qz = (w*z2) + (x*y2) - (y*x2) + (z*w2);
+		double qw = (w*w2) - (x*x2) - (y*y2) - (z*z2);
+		double qx = (w*x2) + (x*w2) + (y*z2) - (z*y2);
+		double qy = (w*y2) - (x*z2) + (y*w2) + (z*x2);
+		double qz = (w*z2) + (x*y2) - (y*x2) + (z*w2);
 
 		newQuat.Set(qw, qx, qy, qz);
 
 		return newQuat;
+	}
 
+	
+
+	Quaternion Quaternion::operator- ( const Quaternion& quat )const
+	{
+		return this->Cross( quat.Inverse() ).Normalized();
 	}
 
 	void Quaternion::operator= (const Quaternion& quat)
@@ -293,21 +287,21 @@ namespace Kiwi
 		x = quat.x;
 		y = quat.y;
 		z = quat.z;
-
-		this->_Normalize();
 	}
 
 	bool Quaternion::operator== (const Quaternion& quat)const
 	{
-
 		return ( w == quat.w && x == quat.x && y == quat.y && z == quat.z );
+	}
 
+	bool Quaternion::operator!= ( const Quaternion& quat )const
+	{
+		return (w != quat.w || x != quat.x || y != quat.y || z != quat.z);
 	}
 
 	void Quaternion::_Normalize()
 	{
-
-		float norm = this->Norm();
+		double norm = this->Norm();
 
 		if(norm != 0.0f)
 		{
@@ -316,7 +310,6 @@ namespace Kiwi
 			y /= norm; 
 			z /= norm;
 		}
-
 	}
 
 
@@ -328,7 +321,6 @@ namespace Kiwi
 	3. rotating about the y-axis by vec.y radians*/
 	Quaternion Quaternion::FromEuler(const Kiwi::Vector3& vec)
 	{
-
 		//create the rotations
 		Quaternion xRot(Kiwi::Vector3::right(), vec.x);
 		Quaternion yRot(Kiwi::Vector3::up(), vec.y);
@@ -345,14 +337,12 @@ namespace Kiwi
 		//finalRot = (yRot * (xRot * zRot));
 
 		return finalRot;
-
 	}
 
 	/*Returns a quaternion q such that v1*q = v2; the quaternion that rotates v1 to v2
 	Both v1 and v2 are assumed to be normalized*/
 	Quaternion Quaternion::RotateTo(const Kiwi::Vector3& v1, const Kiwi::Vector3& v2)
 	{
-
 		Quaternion q;
 
 		Kiwi::Vector3 v = v1.Cross(v2);
@@ -368,7 +358,6 @@ namespace Kiwi
 		//q = q.Normalized();
 
 		return q;
-
 	}
 
 };

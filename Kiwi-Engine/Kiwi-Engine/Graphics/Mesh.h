@@ -1,14 +1,18 @@
 #ifndef _KIWI_MESH_H_
 #define _KIWI_MESH_H_
 
-#include "DirectX.h"
 #include "Material.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
 
+#include "..\Types.h"
+
+#include "../Core/Component.h"
+#include "..\Core\Math.h"
 #include "../Core/IAsset.h"
-#include "../Core/Vector2.h"
-#include "../Core/Vector3.h"
+#include "..\Core\Vector2d.h"
+#include "../Core/Vector3d.h"
+#include "..\Core\IAssetConsumer.h"
+
+#include "..\Events\EventHandling.h"
 
 #include <vector>
 #include <string>
@@ -16,106 +20,141 @@
 namespace Kiwi
 {
 
-	class Mesh :
-		public Kiwi::IAsset
-	{
-	friend class Material;
+	//class StaticMeshAsset;
+	class IMeshAsset;
+	class Renderer;
+	class RenderQueue;
+	class IGPUBuffer;
+	class IModel;
 
+	struct D3DVertex;
+
+	template<class BufferDataType> class GPUBuffer;
+
+	class Mesh :
+		public Kiwi::Component,
+		public Kiwi::IAssetConsumer
+	{
+		friend class Material;
+		friend class RenderQueue;
 	public:
 
-		struct ShaderVertex
+		struct Face
 		{
-			DirectX::XMFLOAT3 position;
-			DirectX::XMFLOAT2 tex;
-			DirectX::XMFLOAT3 normal;
+			Kiwi::Vector3d v1, v2, v3; //vertices
+			Kiwi::Color c1, c2, c3; //colors
+			Kiwi::Vector3d n1, n2, n3; //normals
+			unsigned long i1, i2, i3; //indices
+
+			Face()
+			{
+				i1 = i2 = i3 = 0;
+			}
 		};
 
-		struct Vertex
-		{
-			Vertex() {}
-			Vertex( float x, float y, float z, float u, float v, float nX, float nY, float nZ ): 
-				position( x, y, z ), textureUV( u, v ), normals( nX, nY, nZ ) {}
-			Vertex( const Kiwi::Vector3& pos, const Kiwi::Vector2& texUV, const Kiwi::Vector3& normal ) :
-				position( pos ), textureUV( texUV ), normals( normal ){}
-			Kiwi::Vector3 position;
-			Kiwi::Vector2 textureUV;
-			Kiwi::Vector3 normals;
-		};
+	private:
 
-		struct Subset
-		{
-			std::vector<Mesh::Vertex> vertices;
-			Kiwi::Material material;
-			unsigned int startIndex; //stores the position in the vertex buffer of this subset
-			unsigned int endIndex;
-		};
+		/*numerical ID for the render group this mesh will be using. this is retrieved and set internally from the user-defined render group name*/
+		unsigned short m_renderGroupID;
+
+		/*id of the render target*/
+		unsigned long m_renderTargetID;
 
 	protected:
 
-		Kiwi::Renderer* m_renderer;
+		Kiwi::IModel* m_meshModel;
 
-		std::wstring m_name;
+		/*stores whether the mesh has been marked as shared - shared meshes are used by multiple entities at the same time
+		shared meshes are automatically batched into instance buffers, unless the shared mesh was created as an instanced mesh,
+		in which case it's instance buffer will be used instead*/
+		bool m_isShared;
 
-		std::vector<Kiwi::Mesh::Subset> m_subsets;
+		/*specifies whether or not a fetched asset should be copied or used directly*/
+		bool m_copyModelOnFetch;
 
-		Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>* m_vertexBuffer;
-		Kiwi::IndexBuffer* m_indexBuffer;
+		std::wstring m_renderGroup;
 
-		/*if any subset material uses transparency this will be true*/
-		bool m_hasTransparency;
-		/*if any subset material has a texture this is true*/
-		bool m_hasTexture;
+		std::wstring m_renderTarget;
 
-		/*if the mesh was created as an InstancedMesh this will be true*/
-		bool m_isInstanced;
-		long m_instanceCount;
-		long m_instanceCapacity;
+		std::wstring m_modelName;
+
+		/*index of the target viewport in the render target*/
+		unsigned short m_viewportIndex;
+
+		//keeps track of whether or not the mesh has been added to a render target queue
+		bool m_addedToRenderTargetQueue;
+
+	protected:
+
+		/*adds the mesh to the mesh's target render target's render queue*/
+		bool _AddToRenderTargetQueue();
+
+		void _OnActivate();
+
+		Kiwi::EventResponse _OnAssetFetched( Kiwi::IAsset* asset );
+
+		void _OnAttached();
+
+		void _OnDeactivate();
+
+		void _OnShutdown();
+		
+		void _OnStart();
+
+		/*removes the mesh from the mesh's target render target's render queue*/
+		void _RemoveFromRenderTargetQueue();
+
+		bool _SetRenderTarget( const std::wstring& renderTarget );
+
+		void _UnsetRenderTarget();
 
 	public:
 
-		/*creates an empty mesh*/
-		Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, unsigned int vertexCount = 0 );
+		Mesh( Kiwi::Scene& scene, const std::wstring& name );
 
-		/*creates a mesh from an array of vertices. the vertices will automatically be placed into a new subset*/
-		Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, std::vector<Kiwi::Mesh::Vertex> vertices );
+		Mesh( Kiwi::Scene& scene, const std::wstring& name, const std::wstring& model );
 
-		//Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, const Kiwi::MeshSubset& subset );
-		Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, std::vector<Kiwi::Mesh::Subset> subsetList );
 		virtual ~Mesh();
 
-		virtual void Bind( Kiwi::Renderer* renderer );
+		/*empties the vertex, normal, color, uv, and index arrays, but leaves the vertex and index buffers intact*/
+		virtual void Clear();
 
-		bool HasTransparency()const { return m_hasTransparency; }
-		bool HasTexture()const { return m_hasTexture; }
-		bool IsInstanced()const { return m_isInstanced; }
+		/*returns a pointer to the model used by the mesh*/
+		Kiwi::IModel* GetModel()const { return m_meshModel; }
 
-		//void AddSubset( const Kiwi::MeshSubset& subset );
-		//void AddSubsetList( std::vector<Kiwi::MeshSubset> subsetList );
-		virtual void SetData( std::vector<Kiwi::Mesh::Vertex> vertices );
-		virtual void SetData( std::vector<Kiwi::Mesh::Subset> meshData );
+		std::wstring GetRenderGroup()const { return m_renderGroup; }
 
-		void SetSubsetMaterial(unsigned int index, const Kiwi::Material& mat);
+		unsigned short GetRenderGroupID()const { return m_renderGroupID; }
 
-		Kiwi::Material* GetSubsetMaterial(unsigned int subset);
-		Kiwi::Mesh::Subset* GetSubset(unsigned int subsetIndex);
+		unsigned short GetViewport()const { return m_viewportIndex; }
 
-		std::wstring GetName()const { return m_name; }
+		/*tests for intersection between a cast ray and the faces in this mesh. returns true if a collision
+		occured and false otherwise.
+		|-rayOrigin: global coordinates if the start point of the cast ray
+		|-rayDirection: orientation of the ray vector
+		|-maxDepth: maximum z depth that will be checked for collisions along the path of the ray
+		|-collisions: vector containing all faces in the mesh that were intersected by the ray
+		|-maxCollisions: maximum number of collisions before this function will return
+		|-includeBackFaces: if true, back faces will be included in collision results*/
+		virtual bool IntersectRay( const Kiwi::Vector3d& rayOrigin, const Kiwi::Vector3d& rayDirection, double maxDepth, std::vector<Kiwi::Mesh::Face>& collisionFaces, int maxCollisions = -1, bool includeBackFaces = false );
 
-		unsigned int GetSubsetCount()const { return (unsigned int)m_subsets.size(); }
-		int GetIndexCount()const;
-		int GetVertexCount()const;
+		void SetModel( const std::wstring& modelName, bool copyOriginal = true );
 
-		long GetInstanceCount()const { return m_instanceCount; }
-		long GetInstanceCapacity()const { return m_instanceCapacity; }
+		void SetModel( Kiwi::IModel* model, bool copyOriginal = true );
 
-		Kiwi::IBuffer* GetVertexBuffer();
-		Kiwi::IBuffer* GetIndexBuffer();
+		bool SetRenderGroup( const std::wstring& renderGroup );
 
-		/*creates a mesh representing a 1x1x1 cube primitive*/
-		static Kiwi::Mesh* Rectangle( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector3& dimensions );
-		static Kiwi::Mesh* Quad( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector2& dimensions );
+		/*attempts to set the mesh's render target and add the mesh to its render queue.
+		|-renderTarget: unique name of the render target
+		|-returns: true if the render target was found, false otherwise*/
+		bool SetRenderTarget( const std::wstring& renderTarget );
 
+		/*sets the viewport within the mesh's render target to which the mesh will be rendered*/
+		void SetViewport( unsigned short viewportIndex ) { m_viewportIndex = viewportIndex; }
 	};
+
+	typedef std::vector<Kiwi::Mesh*> MeshList;
+
 };
 
 #endif

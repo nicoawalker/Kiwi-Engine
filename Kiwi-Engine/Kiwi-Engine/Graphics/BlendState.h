@@ -1,7 +1,7 @@
 #ifndef _KIWI_BLENDSTATE_H_
 #define _KIWI_BLENDSTATE_H_
 
-#include "..\Core\Vector4.h"
+#include "DirectX.h"
 
 #include <string>
 
@@ -12,28 +12,39 @@ namespace Kiwi
 
 	class Renderer;
 
+	struct KiwiBlendDesc
+	{
+
+		D3D11_RENDER_TARGET_BLEND_DESC desc;
+		bool alphaToCoverageEnable;
+		bool independentBlendEnable;
+
+		KiwiBlendDesc()
+		{
+			memset( &desc, 0, sizeof( D3D11_RENDER_TARGET_BLEND_DESC ) );
+		}
+	};
+
 	class BlendState
 	{
 	protected:
 
 		std::wstring m_name;
+		long m_uid;
 
 		ID3D11BlendState* m_blendState;
-
-		Kiwi::Vector4 m_blendFactor;
 
 		unsigned int m_sampleMask;
 
 	public:
 
-		BlendState( std::wstring name, ID3D11BlendState* blendState, const Kiwi::Vector4& blendFactor, unsigned int sampleMask = 0xFFFFFF );
+		BlendState( std::wstring name, ID3D11BlendState* blendState, unsigned int sampleMask = 0xFFFFFFFF );
 		virtual ~BlendState();
 
-		std::wstring GetName()const { return m_name;}
+		std::wstring GetName()const { return m_name; }
+		long GetUID()const { return m_uid; }
 
 		ID3D11BlendState* GetD3DBlendState()const { return m_blendState; }
-		
-		const Kiwi::Vector4& GetBlendFactor()const { return m_blendFactor; }
 
 		unsigned int GetSampleMask()const { return m_sampleMask; }
 

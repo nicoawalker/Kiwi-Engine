@@ -23,6 +23,9 @@ namespace Kiwi
 
 		virtual ~IThreadSafe() = 0;
 
+		void MutexLock();
+		void MutexUnlock();
+
 	};
 
 }

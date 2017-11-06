@@ -1,15 +1,13 @@
 #include "RenderWindow.h"
-#include "IWindowEventListener.h"
-#include "WindowEvent.h"
 
 #include "..\Core\Exception.h"
-#include "..\Core\RawInputWrapper.h"
 
 namespace Kiwi
 {
 
 	RenderWindow::RenderWindow( std::wstring windowName, DWORD style, DWORD exStyle, int x, int y,
-				  int width, int height, bool vsyncEnabled, HWND parent, HMENU menu )
+								int width, int height, bool vsyncEnabled, HWND parent, HMENU menu ) :
+		m_inputManager( *this )
 	{
 
 		m_hwnd = 0;
@@ -43,8 +41,12 @@ namespace Kiwi
 			throw(Kiwi::Exception( L"RenderWindow::Intialize", L"Registration of the main window failed!" ));
 		}
 
+		//convert the passed width and height so that the client area is the specified size
+		RECT windowArea = { 0, 0, width, height };
+		AdjustWindowRectEx( &windowArea, style, 0, exStyle );
+
 		m_hwnd = CreateWindowEx( exStyle, className.c_str(), m_name.c_str(), style, x, y,
-								 width, height, parent, menu, m_hInst, this );
+								 (windowArea.right - windowArea.left), (windowArea.bottom - windowArea.top), parent, menu, m_hInst, this );
 
 		if( !m_hwnd )
 		{
@@ -52,16 +54,23 @@ namespace Kiwi
 			throw Kiwi::Exception( L"RenderWindow::Intialize", L"["+windowName+L"] Call to CreateWindowEx failed" );
 		}
 
-		//initialize raw input for this window
-		m_inputDevice = new Kiwi::RawInputWrapper( this );
-
 		m_position.Set( (float)x, (float)y );
 		m_dimensions.Set( (float)width, (float)height );
+
+		/*initialize raw input for this window*/
+		m_inputManager.InitializeRawInput();
 
 	}
 
 	RenderWindow::~RenderWindow()
 	{
+
+	}
+
+	void RenderWindow::Shutdown()
+	{
+
+		//PostQuitMessage( 0 );
 
 	}
 
@@ -105,22 +114,33 @@ namespace Kiwi
 		{
 			case WM_INPUT:
 				{
-					if( m_inputDevice ) m_inputDevice->ProcessInput( wParam, lParam );
+					/*get the raw input information*/
+					RAWINPUT InputData;
+
+					UINT DataSize = sizeof( RAWINPUT );
+					GetRawInputData( (HRAWINPUT)lParam,
+									 RID_INPUT,
+									 &InputData,
+									 &DataSize,
+									 sizeof( RAWINPUTHEADER ) );
+
+					m_inputManager.ProcessInput( InputData );
 
 					break;
 				}
+			default: break;
 		}
 
 		//send this event to the listeners
-		if(this) this->BroadcastEvent(Kiwi::WindowEvent(this, msg));
+		this->EmitWindowEvent( std::make_shared<Kiwi::WindowMessageEvent>( *this, msg, wParam, lParam ) );
 
 		return DefWindowProc(m_hwnd, msg, wParam, lParam);
 	}
 
-	void RenderWindow::Update( float deltaTime )
+	void RenderWindow::Update()
 	{
 
-		if( m_inputDevice ) m_inputDevice->OnUpdate( deltaTime );
+		m_inputManager.Update();
 
 	}
 
@@ -177,7 +197,7 @@ namespace Kiwi
 			m_isVisible = false;
 		}
 
-		return (bool)ShowWindow(m_hwnd, cmdShow);
+		return (ShowWindow( m_hwnd, cmdShow )) ? true : false;
 	}
 
 	bool RenderWindow::CenterWindow(HWND parent)
@@ -196,6 +216,8 @@ namespace Kiwi
 		}
 
 		m_position.Set((float)rc.left, (float)rc.top);
+
+		this->EmitWindowEvent( std::make_shared<Kiwi::WindowMoveEvent>( *this, Kiwi::Vector2d( rc.left, rc.top ) ) );
 
 		return true;
 
@@ -216,7 +238,7 @@ namespace Kiwi
 			POINT pt2 = { rc.right, rc.bottom };
 			ClientToScreen(m_hwnd, &pt);
 			ClientToScreen(m_hwnd, &pt2);
-			SetRect(&rc, pt.x, pt.y, pt2.x, pt2.y);
+			SetRect(&rc, pt.x + 1, pt.y + 1, pt2.x - 1, pt2.y - 1);
 
 			// Confine the cursor.
 			ClipCursor(&rc);

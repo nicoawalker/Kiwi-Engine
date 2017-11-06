@@ -1,23 +1,25 @@
 #include "IShader.h"
 #include "Renderer.h"
+#include "GraphicsManager.h"
 
 #include "../Core/Exception.h"
-#include "../Core/Utilities.h"
+#include "..\Core\Utilities.h"
+#include "../Core/EngineRoot.h"
 
 namespace Kiwi
 {
 
-	IShader::IShader( std::wstring shaderName, Kiwi::Renderer* renderer, std::wstring vertexShaderFile, std::wstring pixelShaderFile )
+	IShader::IShader( const std::wstring shaderName, const std::wstring assetSubcategory, const std::wstring renderer, const std::wstring vertexShaderFile, const std::wstring pixelShaderFile ):
+		Kiwi::IAsset( shaderName, L"Shader", assetSubcategory )
 	{
 
-		assert( renderer != 0 );
+		m_renderer = _kGraphics.FindRenderer( renderer );
 
-		m_numPixelBuffers = 0;
-		m_numSamplers = 0;
-		m_numVertexBuffers = 0;
-		m_samplers = 0;
-		m_pixelBuffers = 0;
-		m_vertexBuffers = 0;
+		if( m_renderer == 0 )
+		{
+			throw Kiwi::Exception( L"IShader", L"Failed to initialize shader '" + m_shaderName + L"': invalid renderer", KIWI_EXCEPTION::INVALIDPARAMETER );
+		}
+
 		m_vertexBlob = 0;
 		m_pixelBlob = 0;
 		m_vertexShader = 0;
@@ -43,14 +45,14 @@ namespace Kiwi
 		}
 
 		//create the vertex shader from the compiled data
-		hr = renderer->GetDevice()->CreateVertexShader( m_vertexBlob->GetBufferPointer(), m_vertexBlob->GetBufferSize(), NULL, &m_vertexShader );
+		hr = m_renderer->GetDevice()->CreateVertexShader( m_vertexBlob->GetBufferPointer(), m_vertexBlob->GetBufferSize(), NULL, &m_vertexShader );
 		if( FAILED( hr ) )
 		{
 			throw Kiwi::Exception( L"IShader", L"[" + m_shaderName + L"] Call to CreateVertexShader failed: " + Kiwi::GetD3DErrorString( hr ) );
 		}
 
 		//create the pixel shader from the compiled data
-		hr = renderer->GetDevice()->CreatePixelShader( m_pixelBlob->GetBufferPointer(), m_pixelBlob->GetBufferSize(), NULL, &m_pixelShader );
+		hr = m_renderer->GetDevice()->CreatePixelShader( m_pixelBlob->GetBufferPointer(), m_pixelBlob->GetBufferSize(), NULL, &m_pixelShader );
 		if( FAILED( hr ) )
 		{
 			throw Kiwi::Exception( L"IShader", L"[" + m_shaderName + L"] Call to CreatePixelShader failed: " + Kiwi::GetD3DErrorString( hr ) );
@@ -60,20 +62,22 @@ namespace Kiwi
 
 	IShader::~IShader()
 	{
-
-		for( unsigned int i = 0; i < m_numSamplers; i++ )
+		for( auto vItr = m_vBuffers.begin(); vItr != m_vBuffers.end(); )
 		{
-			SAFE_RELEASE( m_samplers[i] );
+			SAFE_RELEASE( *vItr );
+			vItr = m_vBuffers.erase( vItr );
 		}
 
-		for( unsigned int i = 0; i < m_numPixelBuffers; i++ )
+		for( auto pItr = m_pBuffers.begin(); pItr != m_pBuffers.end(); )
 		{
-			SAFE_RELEASE( m_pixelBuffers[i] );
+			SAFE_RELEASE( *pItr );
+			pItr = m_pBuffers.erase( pItr );
 		}
 
-		for( unsigned int i = 0; i < m_numVertexBuffers; i++ )
+		for( auto sItr = m_samplerStates.begin(); sItr != m_samplerStates.end(); )
 		{
-			SAFE_RELEASE( m_vertexBuffers[i] );
+			SAFE_RELEASE( *sItr );
+			sItr = m_samplerStates.erase( sItr );
 		}
 
 		SAFE_RELEASE( m_inputLayout );
@@ -81,82 +85,6 @@ namespace Kiwi
 		SAFE_RELEASE( m_pixelBlob );
 		SAFE_RELEASE( m_vertexShader );
 		SAFE_RELEASE( m_pixelShader );
-
-	}
-
-	void IShader::_CreateInputLayout( Kiwi::Renderer* renderer, D3D11_INPUT_ELEMENT_DESC* polygonLayout, unsigned int layoutSize, ID3D11InputLayout** layout )
-	{
-
-		assert( renderer != 0 );
-
-		HRESULT hr = renderer->GetDevice()->CreateInputLayout(  polygonLayout, // pointer to the layout description
-																layoutSize, // number of elements in the layout
-																m_vertexBlob->GetBufferPointer(), // pointer to the vertex shader
-																m_vertexBlob->GetBufferSize(), // length of the shader file
-																layout ); // the created object
-		if( FAILED( hr ) )
-		{
-			throw Kiwi::Exception( L"Shader", L"[" + m_shaderName + L"] Call to CreateInputLayout failed: " + Kiwi::GetD3DErrorString( hr ) );
-		}
-
-	}
-
-	void IShader::_CreateSampler( Kiwi::Renderer* renderer, D3D11_SAMPLER_DESC samplerDesc, ID3D11SamplerState** sampler )
-	{
-
-		assert( renderer != 0 );
-
-		//create a new sampler state
-		HRESULT hr = renderer->GetDevice()->CreateSamplerState( &samplerDesc, sampler );
-		if( FAILED( hr ) )
-		{
-			throw Kiwi::Exception( L"Shader", L"[" + m_shaderName + L"] Call to CreateSamplerState failed: " + Kiwi::GetD3DErrorString( hr ) );
-		}
-
-	}
-
-	void IShader::_CreateBuffer( Kiwi::Renderer* renderer, D3D11_BUFFER_DESC bufferDesc, ID3D11Buffer** buffer )
-	{
-
-		assert( renderer != 0 );
-
-		// create a new constant buffer
-		HRESULT hr = renderer->GetDevice()->CreateBuffer( &bufferDesc, NULL, buffer );
-		if( FAILED( hr ) )
-		{
-			throw Kiwi::Exception( L"Shader", L"[" + m_shaderName + L"] Call to CreateBuffer failed: " + Kiwi::GetD3DErrorString( hr ) );
-		}
-
-	}
-
-	void IShader::Bind( Kiwi::Renderer* renderer )
-	{
-
-		assert( renderer != 0 );
-
-		//bind the vertex and pixel shaders to use
-		renderer->GetDeviceContext()->VSSetShader( m_vertexShader, NULL, 0 );
-		renderer->GetDeviceContext()->PSSetShader( m_pixelShader, NULL, 0 );
-
-		//bind the vertex input layout
-		renderer->GetDeviceContext()->IASetInputLayout( m_inputLayout );
-
-		//bind all of the vertex buffers
-		if( m_numVertexBuffers > 0 )
-		{
-			renderer->GetDeviceContext()->VSSetConstantBuffers( 0, m_numVertexBuffers, m_vertexBuffers );
-		}
-		//bind all of the pixel buffers
-		if( m_numPixelBuffers > 0 )
-		{
-			renderer->GetDeviceContext()->PSSetConstantBuffers( 0, m_numPixelBuffers, m_pixelBuffers );
-		}
-		//bind all of the samplers
-		if( m_numSamplers > 0 )
-		{
-			renderer->GetDeviceContext()->PSSetSamplers( 0, m_numSamplers, m_samplers );
-		}
-
 	}
 
 }

@@ -1,188 +1,363 @@
 #include "Material.h"
 #include "Mesh.h"
+#include "Texture.h"
+#include "IShader.h"
+
+#include "..\Types.h"
+
+#include "../Core/EngineRoot.h"
+#include "..\Core\Utilities.h"
 
 namespace Kiwi
 {
 
-	Material::Material()
+	Material::Material() :
+		Kiwi::IAsset( L"Mat", L"Material" )
 	{
+		m_textures.assign( 4, nullptr );
+		m_textureNames.resize( 4 );
 
-		m_mesh = 0;
-		m_materialName = L"uninitialized";
+		m_reflectivity = 0.0f;
+		m_opticalDensity = 0.0f;
+		m_illum = 0;
+
+		m_colors.resize( 5 );
+		m_colors[0] = Kiwi::Color( 1.0f, 0.0f, 1.0f, 1.0f );
+
+		m_shaderEffect = 0;
+		m_shader = nullptr;
+		m_shaderID = 0;
+		m_uid = Kiwi::NewUID();
+
+		m_translucencyType = 0;
+	}
+
+	Material::Material( const std::vector<std::wstring>& textures ) :
+		Kiwi::IAsset( L"Mat", L"Material" )
+	{
+		m_textureNames = textures;
+		m_textureNames.resize( 4 );
+
+		m_textures.assign( 4, nullptr );
+
+		m_reflectivity = 0;
+		m_opticalDensity = 0;
+		m_illum = 0;
+
+		m_colors.resize( 5 );
+		m_colors[0] = Kiwi::Color( 1.0f, 0.0f, 1.0f, 1.0f );
+
+		m_shaderEffect = 0;
+		m_shader = nullptr;
+		m_shaderID = 0;
+		m_uid = Kiwi::NewUID();
+
+		m_translucencyType = 0;
+
+		/*retrieve the textures, if they are loaded*/
+		for( uint i = 0; i < 4; i++ )
+		{
+			if( m_textureNames[i].length() > 0 && m_textures[i] == nullptr )
+			{
+				this->FetchAsset( L"Texture", m_textureNames[i] );
+			}
+		}
+	}
+
+	Material::Material( const Material& other ):
+		Kiwi::IAsset(other.GetAssetName(), other.GetAssetCategory())
+	{
+		m_uid = Kiwi::NewUID();
+		m_shaderEffect = other.m_shaderEffect;
+		m_shaderName = other.m_shaderName;
+		m_renderGroup = other.m_renderGroup;
+		m_textures = other.m_textures;
+		m_textureNames = other.m_textureNames;
+		m_colors = other.m_colors;
+		m_reflectivity = other.m_reflectivity;
+		m_opticalDensity = other.m_opticalDensity;
+		m_illum = other.m_illum;
+		m_shader = other.m_shader;
+		m_shaderID = other.m_shaderID;
+		m_translucencyType = other.m_translucencyType;
+
+		if( m_textures.size() < 4 ) m_textures.assign( 4, nullptr );
+		if( m_textureNames.size() < 4 ) m_textureNames.resize( 4 );
+		if( m_colors.size() < 5 ) m_colors.resize( 5 );
+
+		if( m_shaderName.size() > 0 && m_shader == nullptr )
+		{
+			this->FetchAsset( L"Shader", m_shaderName );
+		}
+	}
+
+	Material::Material( const std::wstring& materialName ):
+		Kiwi::IAsset( materialName, L"Material" )
+	{
+		m_textures.assign( 4, nullptr );
+		m_textureNames.resize( 4 );
+
+		m_reflectivity = 0.0f;
+		m_opticalDensity = 0.0f;
+		m_illum = 0;
+
+		m_colors.resize( 5 );
+		m_colors[0] = Kiwi::Color( 1.0f, 0.0f, 1.0f, 1.0f );
+
+		m_shaderEffect = 0;
+		m_shader = nullptr;
+		m_shaderID = 0;
+		m_uid = Kiwi::NewUID();
+		m_translucencyType = 0;
+	}
+
+	Material::Material( const std::wstring& materialName, const Kiwi::Color& diffuseColor ):
+		Kiwi::IAsset( materialName, L"Material" )
+	{
+		m_colors.resize( 5 );
+		m_colors[0] = diffuseColor;
 		
-		m_diffuseMap = 0;
-		m_bumpMap = 0;
-		m_ambientMap = 0;
-		m_specularMap = 0;
+		m_textures.assign( 4, nullptr );
+		m_textureNames.resize( 4 );
 
 		m_reflectivity = 0.0f;
 		m_opticalDensity = 0.0f;
 		m_illum = 0;
 
-		m_diffuseColor = Kiwi::Color( 1.0f, 1.0f, 1.0f, 1.0f );
-
+		m_shaderEffect = 0;
+		m_shader = nullptr;
+		m_shaderID = 0;
+		m_uid = Kiwi::NewUID();
+		m_translucencyType = 0;
 	}
 
-	Material::Material(std::wstring name, const Kiwi::Color& diffuseColor)
+	Material::Material( const std::wstring& materialName, Kiwi::Texture* diffuseMap, Kiwi::Texture* bumpMap, Kiwi::Texture* ambientMap, Kiwi::Texture* specularMap ):
+		Kiwi::IAsset( materialName, L"Material" )
 	{
 
-		m_mesh = 0;
-		m_materialName = name;
-		m_diffuseColor = diffuseColor;
+		m_textures.assign( 4, nullptr );
+		m_textures[0] = diffuseMap;
+		m_textures[1] = bumpMap;
+		m_textures[2] = ambientMap;
+		m_textures[3] = specularMap;
 
-		m_diffuseMap = 0;
-		m_bumpMap = 0;
-		m_ambientMap = 0;
-		m_specularMap = 0;
+		m_textureNames.resize( 4 );
+
+		if( diffuseMap )
+		{
+			m_textureNames[0] = diffuseMap->GetAssetName();
+			diffuseMap->IncrementReferenceCount();
+		}
+
+		if( bumpMap )
+		{
+			m_textureNames[1] = bumpMap->GetAssetName();
+			bumpMap->IncrementReferenceCount();
+		}
+
+		if( ambientMap )
+		{
+			m_textureNames[2] = ambientMap->GetAssetName();
+			ambientMap->IncrementReferenceCount();
+		}
+
+		if( specularMap )
+		{
+			m_textureNames[3] = specularMap->GetAssetName();
+			specularMap->IncrementReferenceCount();
+		}
 
 		m_reflectivity = 0.0f;
 		m_opticalDensity = 0.0f;
 		m_illum = 0;
 
+		m_colors.resize( 5 );
+		m_colors[0] = Kiwi::Color( 1.0f, 0.0f, 1.0f, 1.0f );
+
+		m_shaderEffect = 0;
+		m_shader = nullptr;
+		m_shaderID = 0;
+		m_uid = Kiwi::NewUID();
+		m_translucencyType = 0;
 	}
 
-	Material::Material(std::wstring name, Kiwi::Texture* diffuseMap, Kiwi::Texture* bumpMap, Kiwi::Texture* ambientMap, Kiwi::Texture* specularMap)
+	Material::Material( const std::wstring& materialName, const std::vector<std::wstring>& textures, const std::vector<Kiwi::Color>& colors, const std::wstring& shader,
+						double reflectivity, double opticalDensity, int illumination ) :
+		Kiwi::IAsset( materialName, L"Material" )
 	{
+		m_textureNames = textures;
+		m_textureNames.resize( 4 );
 
-		m_mesh = 0;
-		m_materialName = name;
+		m_textures.assign( 4, nullptr );
 
-		m_diffuseMap = diffuseMap;
-		m_bumpMap = bumpMap;
-		m_ambientMap = ambientMap;
-		m_specularMap = specularMap;
+		m_reflectivity = reflectivity;
+		m_opticalDensity = opticalDensity;
+		m_illum = illumination;
 
-		m_reflectivity = 0.0f;
-		m_opticalDensity = 0.0f;
-		m_illum = 0;
+		m_colors = colors;
+		m_colors.resize( 5 );
 
-		m_diffuseColor = Kiwi::Color( 1.0f, 1.0f, 1.0f, 1.0f );
+		m_shaderEffect = 0;
+		m_shaderName = shader;
+		m_shader = nullptr;
+		m_shaderID = 0;
+		m_uid = Kiwi::NewUID();
+		m_translucencyType = 0;
 
+		/*retrieve the textures, if they are loaded*/
+		for( uint i = 0; i < 4; i++ )
+		{
+			if( m_textureNames[i].length() > 0 && m_textures[i] == nullptr )
+			{
+				this->FetchAsset( L"Texture", m_textureNames[i] );
+			}
+		}
+
+		if( m_shaderName.size() > 0 )
+		{
+			this->FetchAsset( L"Shader", m_shaderName );
+		}
 	}
 
 	Material::~Material()
 	{
-
-		m_diffuseMap = 0;
-		m_bumpMap = 0;
-		m_ambientMap = 0;
-		m_specularMap = 0;
-
-		m_reflectivity = 0.0f;
-		m_opticalDensity = 0.0f;
-		m_illum = 0;
-
-	}
-
-	void Material::SetTexture(std::wstring textureType, Kiwi::Texture* texture)
-	{
-
-		if (textureType.compare(L"Diffuse") == 0)
+		for( uint i = 0; i < 4; i++ )
 		{
-			m_diffuseMap = texture;
-
-		} else if (textureType.compare(L"Ambient") == 0)
-		{
-			m_ambientMap = texture;
-
-		} else if (textureType.compare(L"Bump") == 0)
-		{
-			m_bumpMap = texture;
-
-		} else if (textureType.compare(L"Specular") == 0)
-		{
-			m_specularMap = texture;
+			if( m_textures[i] != nullptr ) m_textures[i]->DecrementReferenceCount();
+			m_textures[i] = 0;
 		}
 
+		if( m_shader != nullptr ) m_shader->Free();
 	}
 
-	void Material::SetColor(std::wstring colorType, const Kiwi::Color& color)
+	Kiwi::EventResponse Material::_OnAssetFetched( Kiwi::IAsset* asset )
 	{
-
-		if (colorType.compare(L"Diffuse") == 0)
+		if( asset->GetAssetCategory().compare( L"Texture" ) == 0 )
 		{
-			m_diffuseColor = color;
-			if( m_mesh )
+			for( unsigned int i = 0; i < m_textureNames.size(), i < m_textures.size(); i++ )
 			{
-				if( m_diffuseColor.alpha != 1.0f )
+				if( asset->GetAssetName().compare( m_textureNames[i] ) == 0 )
 				{
-					m_mesh->m_hasTransparency = true;
-				} else
-				{
-					m_mesh->m_hasTransparency = false;
+					if( m_textures[i] != nullptr ) m_textures[i]->DecrementReferenceCount();
+
+					m_textures[i] = dynamic_cast<Kiwi::Texture*>(asset);
+					if( m_textures[i] != nullptr )
+					{
+						m_textures[i]->IncrementReferenceCount();
+						return Kiwi::EventResponse::DISCONNECT_THIS;
+					}
 				}
 			}
 
-		} else if (colorType.compare(L"Ambient") == 0)
+		} else if( asset->GetAssetCategory().compare( L"Shader" ) == 0 && asset->GetAssetName().compare( m_shaderName ) == 0 )
 		{
-			m_ambientColor = color;
+			Kiwi::IShader* shader = dynamic_cast<Kiwi::IShader*>(asset);
+			if( shader == nullptr )return Kiwi::EventResponse::NONE;
 
-		} else if (colorType.compare(L"Specular") == 0)
-		{
-			m_specularColor = color;
-
-		} else if (colorType.compare(L"Emissive") == 0)
-		{
-			m_emissiveColor = color;
-
-		} else if (colorType.compare(L"Transmission") == 0)
-		{
-			m_transmissionFilter = color;
+			m_shader = shader;
+			m_shaderID = shader->GetUID();
+			m_shader->Reserve();
 		}
 
+		return Kiwi::EventResponse::NONE;
 	}
 
-	Kiwi::Texture* Material::GetTexture(std::wstring textureType)const
+	void Material::SetTexture( Material::TEXTURE_TYPE textureType, Kiwi::Texture* texture)
 	{
-
-		if (textureType.compare(L"Diffuse") == 0)
+		uint typeIndex = (uint)textureType;
+		if( typeIndex < 4 )
 		{
-			return m_diffuseMap;
+			if( m_textures[typeIndex] ) m_textures[typeIndex]->DecrementReferenceCount();
 
-		} else if (textureType.compare(L"Ambient") == 0)
-		{
-			return m_ambientMap;
+			m_textures[typeIndex] = texture;
 
-		} else if (textureType.compare(L"Bump") == 0)
-		{
-			return m_bumpMap;
+			if( m_textures[typeIndex] )
+			{
+				m_textures[typeIndex]->IncrementReferenceCount();
+			}
+		}
+	}
 
-		} else if (textureType.compare(L"Specular") == 0)
+	void Material::SetTexture( Material::TEXTURE_TYPE textureType, const std::wstring& textureName )
+	{
+		uint typeIndex = (uint)textureType;
+		if( typeIndex < 4 )
 		{
-			return m_specularMap;
+			m_textureNames[typeIndex] = textureName;
+
+			this->FetchAsset( L"Texture", textureName );
+		}
+	}
+
+	void Material::SetColor( Material::COLOR_TYPE colorType, const Kiwi::Color& color)
+	{
+		uint typeIndex = (uint)colorType;
+		if( typeIndex < 5 )
+		{
+			m_colors[typeIndex] = color;
+		}
+	}
+
+	void Material::SetShader( const std::wstring& shader )
+	{
+		if( m_shader != nullptr ) m_shader->Free();
+		m_shader = nullptr;
+		m_shaderID = 0;
+		m_shaderName = shader;
+		this->FetchAsset( L"Shader", shader );
+	}
+
+	bool Material::HasTransparency()const
+	{
+		if( m_textures[0] != nullptr )
+		{
+			return m_textures[0]->HasTransparency();
+
+		} else
+		{
+			return m_colors[0].alpha != 1.0;
+		}
+	}
+
+	Kiwi::Texture* Material::GetTexture( Material::TEXTURE_TYPE textureType )const
+	{
+		uint typeIndex = (uint)textureType;
+		if( typeIndex < 4 )
+		{
+			return m_textures[typeIndex];
 		}
 
 		return 0;
-
 	}
 
-	const Kiwi::Color& Material::GetColor(std::wstring colorType)const
+	const Kiwi::Color& Material::GetColor( Material::COLOR_TYPE colorType )const
 	{
-
-		if (colorType.compare(L"Diffuse") == 0)
+		uint typeIndex = (uint)colorType;
+		if( typeIndex < 5 )
 		{
-			return m_diffuseColor;
-
-		} else if (colorType.compare(L"Ambient") == 0)
-		{
-			return m_ambientColor;
-
-		} else if (colorType.compare(L"Specular") == 0)
-		{
-			return m_specularColor;
-
-		} else if (colorType.compare(L"Emissive") == 0)
-		{
-			return m_emissiveColor;
-
-		} else if (colorType.compare(L"TransmissionFilter") == 0)
-		{
-			return m_transmissionFilter;
+			return m_colors[typeIndex];
 		}
 
-		return m_diffuseColor;
-
+		return m_colors[0];
 	}
-	
+
+	Material& Material::operator= ( const Material& other )
+	{
+		m_uid = Kiwi::NewUID();
+		m_shaderEffect = other.m_shaderEffect;
+		m_shaderName = other.m_shaderName;
+		m_renderGroup = other.m_renderGroup;
+		m_textures = other.m_textures;
+		m_textureNames = other.m_textureNames;
+		m_colors = other.m_colors;
+		m_reflectivity = other.m_reflectivity;
+		m_opticalDensity = other.m_opticalDensity;
+		m_illum = other.m_illum;
+		m_translucencyType = other.m_translucencyType;
+		m_shader = other.m_shader;
+		m_shaderID = other.m_shaderID;
+
+		return *this;
+	}
 
 };

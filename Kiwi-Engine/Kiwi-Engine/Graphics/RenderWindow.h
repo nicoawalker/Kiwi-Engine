@@ -1,9 +1,10 @@
 #ifndef _KIWI_RENDERWINDOW_H_
 #define _KIWI_RENDERWINDOW_H_
 
-#include "..\Core\Vector2.h"
+#include "../Core/Vector2.h"
+#include "..\Core\InputManager.h"
 
-#include "WindowEventBroadcaster.h"
+#include "../Events/IWindowEventEmitter.h"
 
 #include <Windows.h>
 #include <string>
@@ -13,10 +14,9 @@ namespace Kiwi
 
 	class WindowEvent;
 	class Renderer;
-	class RawInputWrapper;
 
 	class RenderWindow :
-		public Kiwi::WindowEventBroadcaster
+		public Kiwi::IWindowEventEmitter
 	{
 	protected:
 
@@ -29,7 +29,7 @@ namespace Kiwi
 		Kiwi::Vector2 m_position;
 		Kiwi::Vector2 m_dimensions;
 
-		RawInputWrapper* m_inputDevice;
+		InputManager m_inputManager;
 
 		bool m_vsyncEnabled;
 		bool m_isVisible;
@@ -41,9 +41,11 @@ namespace Kiwi
 					  int width, int height, bool vsyncEnabled, HWND parent, HMENU menu );
 		virtual ~RenderWindow();
 
+		void Shutdown();
+
 		LRESULT HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
-		void Update( float deltaTime );
+		void Update();
 
 		bool Show(int cmdShow);
 
@@ -58,10 +60,13 @@ namespace Kiwi
 		bool GetVSyncEnabled()const { return m_vsyncEnabled; }
 		HWND GetHandle()const { return m_hwnd; }
 		HINSTANCE GetInstance()const { return m_hInst; }
-		RawInputWrapper* GetInput()const { return m_inputDevice; }
+		InputManager& GetInputManager() { return m_inputManager; }
 		Kiwi::Vector2 GetPosition();
 		Kiwi::Vector2 GetWindowSize();
 		Kiwi::Vector2 GetClientSize();
+		std::wstring GetName()const { return m_name; }
+
+		//void BroadcastMouseEvent( const Kiwi::MouseEvent& evt );
 
 	};
 };

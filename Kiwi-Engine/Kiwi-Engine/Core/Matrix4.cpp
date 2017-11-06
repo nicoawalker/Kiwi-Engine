@@ -8,10 +8,10 @@ namespace Kiwi
 	Matrix4::Matrix4()
 	{
 
-		a1 = a2 = a3 = a4 = 0.0f;
-		b1 = b2 = b3 = b4 = 0.0f;
-		c1 = c2 = c3 = c4 = 0.0f;
-		d1 = d2 = d3 = d4 = 0.0f;
+		a1 = a2 = a3 = a4 = 0.0;
+		b1 = b2 = b3 = b4 = 0.0;
+		c1 = c2 = c3 = c4 = 0.0;
+		d1 = d2 = d3 = d4 = 0.0;
 
 	}
 
@@ -117,7 +117,7 @@ namespace Kiwi
 
 	//----------static member functions--------------------/
 
-	Matrix4 Matrix4::Translation(const Kiwi::Vector3& translation)
+	Matrix4 Matrix4::Translation(const Kiwi::Vector3d& translation)
 	{
 
 		/*
@@ -127,10 +127,10 @@ namespace Kiwi
 		x y z 1  */
 
 		Matrix4 trans;
-		trans.a1 = 1.0f;
-		trans.b2 = 1.0f;
-		trans.c3 = 1.0f;
-		trans.d4 = 1.0f;
+		trans.a1 = 1.0;
+		trans.b2 = 1.0;
+		trans.c3 = 1.0;
+		trans.d4 = 1.0;
 
 		trans.d1 = translation.x;
 		trans.d2 = translation.y;
@@ -140,7 +140,7 @@ namespace Kiwi
 
 	}
 
-	Matrix4 Matrix4::Scaling(const Kiwi::Vector3& scaling)
+	Matrix4 Matrix4::Scaling(const Kiwi::Vector3d& scaling)
 	{
 
 		/*
@@ -153,13 +153,13 @@ namespace Kiwi
 		scale.a1 = scaling.x;
 		scale.b2 = scaling.y;
 		scale.c3 = scaling.z;
-		scale.d4 = 1.0f;
+		scale.d4 = 1.0;
 
 		return scale;
 
 	}
 
-	Matrix4 Matrix4::Projection(float fovy, float aspectRatio, float nearView, float farView)
+	Matrix4 Matrix4::Projection( double fovy, double aspectRatio, double nearView, double farView)
 	{
 
 		/*
@@ -171,15 +171,14 @@ namespace Kiwi
 
 		where:
 		yScale = cot(fovY/2)
-
 		xScale = yScale / aspect ratio*/
 
-		float fovTan = std::tan( fovy / 2.0f );
-		if(fovTan == 0) fovTan = 0.001f;
-		if(aspectRatio == 0) aspectRatio = 1.0f;
-		if(farView - nearView == 0) farView = nearView + 1.0f;
-		float yScale = 1.0f / fovTan;
-		float xScale = yScale / aspectRatio;
+		double fovTan = std::tan( fovy / 2.0 );
+		if(fovTan == 0) fovTan = 0.001;
+		if(aspectRatio == 0) aspectRatio = 1.0;
+		if(farView - nearView == 0) farView = nearView + 1.0;
+		double yScale = 1.0 / fovTan;
+		double xScale = yScale / aspectRatio;
 
 		Matrix4 proj;
 
@@ -187,36 +186,96 @@ namespace Kiwi
 		proj.b2 = yScale;
 		proj.c3 = farView / ( farView-nearView );
 		proj.d3 = ( -nearView*farView ) / ( farView-nearView );
-		proj.c4 = 1.0f;
+		proj.c4 = 1.0;
 		
 		return proj;
 
 	}
 
-	Matrix4 Matrix4::Orthographic(float screenWidth, float screenHeight, float nearView, float farView)
+	Matrix4 Matrix4::Orthographic( double screenWidth, double screenHeight, double nearView, double farView)
 	{
 
 		/*
-		creates the following matrix:
+		creates the following matrix: zf = farview zn = nearview
 		2/w  0    0           0
 		0    2/h  0           0
 		0    0    1/(zf-zn)   0
 		0    0    zn/(zn-zf)  1
 		*/
 
-		if(screenWidth <= 0.0f) screenWidth = 1.0f;
-		if(screenHeight <= 0.0f) screenHeight = 1.0f;
+		if(screenWidth <= 0.0) screenWidth = 1.0;
+		if(screenHeight <= 0.0) screenHeight = 1.0;
 
-		if(farView - nearView == 0.0f) farView = nearView + 1.0f;
-		if(nearView - farView == 0.0f) nearView = farView + 1.0f;
+		if(farView - nearView == 0.0) farView = nearView + 1.0;
+		if(nearView - farView == 0.0) nearView = farView + 1.0;
 
 		Matrix4 ortho;
 
-		ortho.a1 = 2.0f / screenWidth;
-		ortho.b2 = 2.0f / screenHeight;
-		ortho.c3 = 1.0f / ( farView - nearView);
+		ortho.a1 = 2.0 / screenWidth;
+		ortho.b2 = 2.0 / screenHeight;
+		ortho.c3 = 1.0 / ( farView - nearView);
 		ortho.d3 = nearView / (nearView - farView );
-		ortho.d4 = 1.0f;
+		ortho.d4 = 1.0;
+
+		return ortho;
+
+	}
+
+	Matrix4 Matrix4::OrthographicLH( double screenWidth, double screenHeight, double nearView, double farView )
+	{
+
+		/*
+		creates the following matrix: zf = farview zn = nearview
+		2/w  0    0           0
+		0    2/h  0           0
+		0    0    1/(zf-zn)   0
+		0    0    -zn/(zf-zn)  1
+		*/
+
+		if( screenWidth <= 0.0 ) screenWidth = 1.0;
+		if( screenHeight <= 0.0 ) screenHeight = 1.0;
+
+		if( farView - nearView == 0.0 ) farView = nearView + 1.0;
+
+		Matrix4 ortho;
+
+		ortho.a1 = 2.0 / screenWidth;
+		ortho.b2 = 2.0 / screenHeight;
+		ortho.c3 = 1.0 / (farView - nearView);
+		ortho.d3 = -nearView / (farView - nearView);
+		ortho.d4 = 1.0;
+
+		return ortho;
+
+	}
+
+	Matrix4 Matrix4::OrthographicOffCenterLH( double screenWidth, double screenHeight, double nearView, double farView )
+	{
+
+		/*
+		creates the following matrix: 
+		zf = farview zn = nearview, l = min x value, r = max x value, b = min y value, t = max y value
+		2/(r-l)      0            0           0
+		0            2/(t-b)      0           0
+		0            0            1/(zf-zn)   0
+		(l+r)/(l-r)  (t+b)/(b-t)  zn/(zn-zf)  1
+		*/
+
+		if( screenWidth <= 0.0 ) screenWidth = 1.0;
+		if( screenHeight <= 0.0 ) screenHeight = 1.0;
+
+		if( farView - nearView == 0.0 ) farView = nearView + 1.0;
+		if( nearView - farView == 0.0 ) nearView = farView + 1.0;
+
+		Matrix4 ortho;
+
+		ortho.a1 = 2.0 / screenWidth;
+		ortho.b2 = 2.0 / screenHeight;
+		ortho.c3 = 1.0 / (farView - nearView);
+		ortho.c1 = (screenWidth) / (0.0 - screenWidth);
+		ortho.c2 = (screenHeight) / (0.0 - screenHeight);
+		ortho.d3 = nearView / (nearView - farView);
+		ortho.d4 = 1.0;
 
 		return ortho;
 

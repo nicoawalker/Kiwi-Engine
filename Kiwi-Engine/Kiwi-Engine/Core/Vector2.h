@@ -6,6 +6,8 @@
 namespace Kiwi
 {
 
+	class Vector2d;
+
 	class Vector2
 	{
 	public:
@@ -41,24 +43,25 @@ namespace Kiwi
 		Vector2 Scaled(float scalar)const;
 
 		/*returns the dot product of the two vectors: this * vector*/
-		float Dot(const Vector2& vector)const;
+		float Dot( const Vector2& vector )const;
 
 		//returns a string of the form 'x, y'
 		std::wstring ToString()const;
 
-		void operator= (const Vector2& vec);
+		void operator= ( const Vector2& vec );
+		void operator= ( const Vector2d& vec );
 
 		/*returns true if the two vectors are equal*/
-		bool operator== (const Vector2& vec)const;
+		bool operator== ( const Vector2& vec )const;
 
 		//adds the two vectors and returns the result
-		Vector2 operator+ (const Vector2& vec)const;
+		Vector2 operator+ ( const Vector2& vec )const;
 
 		//subtracts the other vector from this one and returns the result
-		Vector2 operator- (const Vector2& vec)const;
+		Vector2 operator- ( const Vector2& vec )const;
 
 		//divides each term of this vector by the amount and returns the result
-		Vector2 operator/ (float amount)const;
+		Vector2 operator/ ( float amount )const;
 		
 		//returns the result of multiplying this vector by a scalar
 		Vector2 operator* ( float scalar )const;

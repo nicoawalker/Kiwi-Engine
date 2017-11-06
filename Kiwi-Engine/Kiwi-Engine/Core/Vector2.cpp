@@ -1,4 +1,5 @@
 #include "Vector2.h"
+#include "Vector2d.h"
 
 #include <cmath>
 #include <string>
@@ -113,6 +114,12 @@ namespace Kiwi
 	{
 		this->x = vec.x;
 		this->y = vec.y;
+	}
+
+	void Vector2::operator= ( const Vector2d& vec )
+	{
+		this->x = (float)vec.x;
+		this->y = (float)vec.y;
 	}
 
 	bool Vector2::operator== (const Vector2& vec)const

@@ -4,126 +4,108 @@
 #include "Scene.h"
 #include "EngineRoot.h"
 
-//#include "../Graphics/GraphicsCore.h"
 #include "../Graphics/Renderer.h"
-#include "../Graphics/RenderWindow.h"
+#include "..\Graphics\RenderWindow.h"
 #include "../Graphics/RenderTarget.h"
 
 namespace Kiwi
 {
 
-	SceneManager::SceneManager( Kiwi::EngineRoot* engine )
+	SceneManager::SceneManager()
 	{
-
-		m_engine = engine;
-		if( m_engine == 0 )
-		{ 
-			throw Kiwi::Exception( L"SceneManager", L"Invalid engine pointer" ); 
-		}
-
-		m_engine->AddListener( this );
-
 	}
 
 	SceneManager::~SceneManager()
 	{
-		
-		if( m_engine ) m_engine->RemoveListener( this );
-
-		auto it = m_scenes.begin();
-		for(; it != m_scenes.end(); )
-		{
-			SAFE_DELETE(it->second);
-			it = m_scenes.erase(it);
-		}
-
+		m_scenes.clear();
 	}
 
-	/*Kiwi::Scene* SceneManager::CreateScene(std::wstring name, std::wstring rendererName)
+	void SceneManager::Shutdown()
 	{
-
-		Kiwi::Scene* scene = 0;
-		try
+		for( auto it = m_scenes.begin(); it != m_scenes.end(); it++ )
 		{
+			it->second->Shutdown();
+		}
+	}
 
-			Kiwi::Renderer* renderer = m_engine->GetGraphicsManager()->FindRendererWithName( rendererName );
-
-			scene = new Kiwi::Scene( m_engine, name, renderer );
-
-			m_scenes[name] = scene;
-
-			return scene;
-
-		}catch(...)
+	void SceneManager::Render()
+	{
+		for( auto& keyValuePair : m_scenes )
 		{
-			throw;
+			keyValuePair.second->Render();
+		}
+	}
+
+	Kiwi::Scene* SceneManager::CreateScene( std::wstring sceneName, std::wstring rendererName )
+	{
+		if( this->FindScene( sceneName ) != 0 )
+		{
+			throw Kiwi::Exception( L"SceneManager::CreateScene", L"Failed to create scene '" + sceneName + L"', scene already exists", KIWI_EXCEPTION::DUPLICATIONATTEMPT );
 		}
 
-	}*/
+		Kiwi::Renderer* renderer = nullptr;
 
-	void SceneManager::AddScene( Kiwi::Scene* scene )
-	{
-
-		if( scene )
+		if( rendererName.compare( L"" ) == 0 )
 		{
-
-			Kiwi::Scene* existingScene = this->FindSceneWithName( scene->GetName() );
-
-			if( existingScene )
+			renderer = _kGraphics.GetActiveRenderer();
+			if( renderer == nullptr )
 			{
-				this->DestroyScene( scene->GetName() );
+				throw Kiwi::Exception( L"SceneManager::CreateScene", L"Failed to create scene '" + sceneName + L"': no renderer was specified and no default renderer was set", KIWI_EXCEPTION::INVALIDPARAMETER );
 			}
 
-			m_scenes[scene->GetName()] = scene;
+		} else
+		{
+			renderer = _kEngine.GetGraphicsManager().FindRenderer( rendererName );
+			if( renderer == nullptr )
+			{
+				throw Kiwi::Exception( L"SceneManager::CreateScene", L"Failed to create scene '" + sceneName + L"': invalid renderer", KIWI_EXCEPTION::INVALIDPARAMETER );
+			}
 		}
 
+		Kiwi::Scene* newScene = new Kiwi::Scene( sceneName, *renderer );
+		if( newScene == NULL )
+		{
+			throw Kiwi::Exception( L"SceneManager::CreateScene", L"Allocation error creating new scene", KIWI_EXCEPTION::OBJECTCREATIONFAILED );
+		}
+
+		m_scenes.insert( std::make_pair( sceneName, std::unique_ptr<Kiwi::Scene>(newScene) ) );
+
+		return newScene;
 	}
 
-	Kiwi::Scene* SceneManager::FindSceneWithName( std::wstring name )
+	Kiwi::Scene* SceneManager::FindScene( std::wstring name )
 	{
-
 		auto sceneItr = m_scenes.find( name );
 		if( sceneItr != m_scenes.end() )
 		{
-			return sceneItr->second;
+			return sceneItr->second.get();
 		}
 
 		return 0;
+	}
 
+	std::vector<Kiwi::Scene*> SceneManager::GetSceneList()
+	{
+		std::vector<Kiwi::Scene*> sceneList;
+
+		for( auto itr = m_scenes.begin(); itr != m_scenes.end(); itr++ )
+		{
+			sceneList.push_back( itr->second.get() );
+		}
+
+		return sceneList;
 	}
 
 	void SceneManager::DestroyScene( std::wstring name )
 	{
-
 		auto itr = m_scenes.find( name );
 		if( itr != m_scenes.end() )
 		{
-			SAFE_DELETE( itr->second );
-			itr = m_scenes.erase( itr );
+			if( itr->second )
+			{
+				itr->second->Shutdown();
+			}
 		}
-
-	}
-
-	void SceneManager::OnUpdate( const Kiwi::FrameEvent& evt )
-	{
-
-		auto sceneItr = m_scenes.begin();
-		for( ; sceneItr != m_scenes.end(); sceneItr++ )
-		{
-			sceneItr->second->_Update();
-		}
-
-	}
-
-	void SceneManager::OnFixedUpdate( const Kiwi::FrameEvent& evt )
-	{
-
-		auto sceneItr = m_scenes.begin();
-		for( ; sceneItr != m_scenes.end(); sceneItr++ )
-		{
-			sceneItr->second->_FixedUpdate();
-		}
-
 	}
 
 };

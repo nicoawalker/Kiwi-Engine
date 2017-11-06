@@ -23,7 +23,7 @@ namespace Kiwi
 
 	public:
 
-		RasterStateManager( Kiwi::Renderer* renderer );
+		RasterStateManager( Kiwi::Renderer& renderer );
 		virtual ~RasterStateManager();
 
 		Kiwi::RasterState* CreateRasterState( std::wstring name, const Kiwi::D3DRasterStateDesc& desc );

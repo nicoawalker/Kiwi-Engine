@@ -1,5 +1,4 @@
 #include "GameTimer.h"
-#include "Logger.h"
 #include "Utilities.h"
 
 namespace Kiwi
@@ -14,9 +13,11 @@ namespace Kiwi
 		m_oneOverTUPS = 1.0 / 60.0;
 
 		m_deltaTime = 0.0f;
-		m_fixedDeltaTime = 0.0f;
+		m_fixedDeltaTime = m_oneOverTUPS;
 
 		m_doFixedUpdate = false;
+
+		m_frameCount = 0;
 
 	}
 
@@ -30,6 +31,7 @@ namespace Kiwi
 
 		if(m_started == false) return;
 
+		static double timeSinceFixedUpdate = 0.0;
 		static double elapsedTime = 0.0;
 		static int lastFPSFrame = 0; //stores the frame count when the fps was last calculated
 		//static double FPSTimer = 0.0;
@@ -37,7 +39,10 @@ namespace Kiwi
 		//update the main timer
 		this->_Tick();
 
+		m_frameCount++;
+
 		elapsedTime += m_frameTime;
+		timeSinceFixedUpdate += m_frameTime;
 		m_doFixedUpdate = false;
 		m_deltaTime = (float)m_frameTime;
 
@@ -54,9 +59,10 @@ namespace Kiwi
 		}
 
 		/*if enough time has passed, it is time to do a fixed update*/
-		if( elapsedTime >= m_fixedDeltaTime )
+		if( timeSinceFixedUpdate >= m_fixedDeltaTime )
 		{
 			m_doFixedUpdate = true;
+			timeSinceFixedUpdate -= m_fixedDeltaTime;
 		}
 
 		/*calculates the current FPS once per second*/

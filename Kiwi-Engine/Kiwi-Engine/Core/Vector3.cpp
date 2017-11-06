@@ -1,4 +1,5 @@
 #include "Vector3.h"
+#include "Vector3d.h"
 
 #include <sstream>
 
@@ -104,12 +105,28 @@ namespace Kiwi
 		this->z = vec.z;
 	}
 
+	void Vector3::operator= ( const Kiwi::Vector3d& vec )
+	{
+		this->x = (float)vec.x;
+		this->y = (float)vec.y;
+		this->z = (float)vec.z;
+	}
+
 	void Vector3::operator+= ( const Kiwi::Vector3& vec )
 	{
 
 		this->x += vec.x;
 		this->y += vec.y;
 		this->z += vec.z;
+
+	}
+
+	void Vector3::operator+= ( const Kiwi::Vector3d& vec )
+	{
+
+		this->x += (float)vec.x;
+		this->y += (float)vec.y;
+		this->z += (float)vec.z;
 
 	}
 
@@ -125,10 +142,24 @@ namespace Kiwi
 
 	}
 
+	Kiwi::Vector3 Vector3::operator+ ( const Kiwi::Vector3d& vec )const
+	{
+
+		return Kiwi::Vector3( this->x + (float)vec.x, this->y + (float)vec.y, this->z + (float)vec.z );
+
+	}
+
 	Kiwi::Vector3 Vector3::operator- ( const Kiwi::Vector3& vec )const
 	{
 
 		return Kiwi::Vector3( this->x - vec.x, this->y - vec.y, this->z - vec.z );
+
+	}
+
+	Kiwi::Vector3d Vector3::operator- ( const Kiwi::Vector3d& vec )const
+	{
+
+		return Kiwi::Vector3d( this->x - vec.x, this->y - vec.y, this->z - vec.z );
 
 	}
 

@@ -1,439 +1,625 @@
 #include "Mesh.h"
-#include "IndexBuffer.h"
+#include "IMeshAsset.h"
+//#include "StaticMeshAsset.h"
+#include "GPUBuffer.h"
 #include "Renderer.h"
+#include "IModel.h"
 
+#include "..\Types.h"
+
+#include "../Core/Entity.h"
+#include "..\Core\Scene.h"
 #include "../Core/Utilities.h"
+#include "..\Core\Exception.h"
+#include "../Core/EngineRoot.h"
 
 namespace Kiwi
 {
 
-	Mesh::Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, unsigned int vertexCount ):
-		IAsset(name, L"StaticMesh")
+	Mesh::Mesh( Kiwi::Scene& scene, const std::wstring& name ) :
+		Kiwi::Component( name, Kiwi::ComponentType::Mesh, scene )
 	{
+		m_meshModel = nullptr;
+		m_copyModelOnFetch = false;
+		m_isShared = false;
 
-		m_name = name;
-		m_renderer = renderer;
-		m_vertexBuffer = 0;
-		m_indexBuffer = 0;
-		m_hasTransparency = false;
-		m_hasTexture = false;
-		m_isInstanced = false;
-		m_instanceCount = 0;
-		m_instanceCapacity = 0;
-		m_assetFiles.push_back( file );
+		m_renderTarget = L"Backbuffer";
+		m_renderGroup = L"";
+		m_renderGroupID = 0;
+		m_viewportIndex = 0;
+		m_renderTargetID = 0;
+		m_addedToRenderTargetQueue = false;
 
-		if( vertexCount != 0 )
-		{
-			//create the dynamic vertex and index buffers
-			m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"/VertexBuffer", renderer, vertexCount );
-			m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"/IndexBuffer", renderer, vertexCount );
-		}
-
+		this->_SetRenderTarget( L"Backbuffer" );
 	}
 
-	Mesh::Mesh( std::wstring name, std::wstring file, Kiwi::Renderer* renderer, std::vector<Kiwi::Mesh::Vertex> vertices ):
-		IAsset(name, L"StaticMesh")
+	Mesh::Mesh( Kiwi::Scene& scene, const std::wstring& name, const std::wstring& model ) :
+		Kiwi::Component( name, Kiwi::ComponentType::Mesh, scene )
 	{
+		m_meshModel = nullptr;
+		m_copyModelOnFetch = false;
+		m_isShared = false;
+		m_modelName = model;
 
-		try
-		{
-			m_name = name;
-			m_renderer = renderer;
-			m_vertexBuffer = 0;
-			m_indexBuffer = 0;
-			m_hasTransparency = false;
-			m_hasTexture = false;
-			m_isInstanced = false;
-			m_instanceCount = 0;
-			m_instanceCapacity = 0;
-			m_assetFiles.push_back( file );
+		m_renderTarget = L"Backbuffer";
+		m_renderGroup = L"";
+		m_renderGroupID = 0;
+		m_viewportIndex = 0;
+		m_renderTargetID = 0;
+		m_addedToRenderTargetQueue = false;
 
-			Kiwi::Mesh::Subset subset;
-			subset.vertices = vertices;
-
-			m_subsets.push_back(subset);
-
-			long vertexCount = 0;
-			for( const Kiwi::Mesh::Subset subset : m_subsets )
-			{
-				vertexCount += (long)subset.vertices.size();
-			}
-
-			//create the dynamic vertex and index buffers
-			m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"/VertexBuffer", renderer, vertexCount );
-			m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"/IndexBuffer", renderer, vertexCount );
-
-			//convert the mesh subset data into an array of ShaderVertex structs and also
-			//generate the indices for the index buffer
-			unsigned long index = 0;
-			std::vector<Kiwi::Mesh::ShaderVertex> shaderVerts;
-			std::vector<unsigned long> indices;
-			for( Kiwi::Mesh::Subset& subset : m_subsets )
-			{
-
-				//check for transparency
-				if( subset.material.GetTransparency() != 1.0f ) m_hasTransparency = true;
-				//check for a texture
-				if( subset.material.IsTextured() ) m_hasTexture = true;
-
-				subset.material.SetMesh( this );
-				subset.startIndex = index;
-
-				//generate ShaderVertex structs from the vertices in the subset
-				for( const Kiwi::Mesh::Vertex& vertex : subset.vertices )
-				{
-					Kiwi::Mesh::ShaderVertex vert;
-					vert.position = DirectX::XMFLOAT3( vertex.position.x, vertex.position.y, vertex.position.z );
-					vert.tex = DirectX::XMFLOAT2( vertex.textureUV.x, vertex.textureUV.y );
-					vert.normal = DirectX::XMFLOAT3( vertex.normals.x, vertex.normals.y, vertex.normals.z );
-					shaderVerts.push_back( vert );
-					indices.push_back( index );
-					index++;
-				}
-
-				subset.endIndex = index;
-			}
-
-			//copy the data into the buffers
-			m_vertexBuffer->SetData( shaderVerts );
-			m_indexBuffer->SetData( indices );
-
-		} catch( ... )
-		{
-			throw;
-		}
-
-	}
-
-	Mesh::Mesh(std::wstring name, std::wstring file, Kiwi::Renderer* renderer, std::vector<Kiwi::Mesh::Subset> meshData):
-		IAsset(name, L"StaticMesh")
-	{
-
-		try
-		{
-			m_name = name;
-			m_renderer = renderer;
-			m_vertexBuffer = 0;
-			m_indexBuffer = 0;
-			m_hasTransparency = false;
-			m_hasTexture = false;
-			m_isInstanced = false;
-			m_instanceCount = 0;
-			m_instanceCapacity = 0;
-			m_assetFiles.push_back( file );
-
-			m_subsets = meshData;
-
-			long vertexCount = 0;
-			for( const Kiwi::Mesh::Subset subset : m_subsets )
-			{
-				vertexCount += (long)subset.vertices.size();
-			}
-
-			//create the dynamic vertex and index buffers
-			m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"/VertexBuffer", renderer, vertexCount );
-			m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"/IndexBuffer", renderer, vertexCount );
-
-			//convert the mesh subset data into an array of ShaderVertex structs and also
-			//generate the indices for the index buffer
-			unsigned long index = 0;
-			std::vector<Kiwi::Mesh::ShaderVertex> shaderVerts;
-			std::vector<unsigned long> indices;
-			for ( Kiwi::Mesh::Subset& subset : m_subsets )
-			{
-
-				//check for transparency
-				if(subset.material.GetTransparency() != 1.0f) m_hasTransparency = true;
-				//check for a texture
-				if( subset.material.IsTextured() ) m_hasTexture = true;
-
-				subset.startIndex = index;
-
-				//generate ShaderVertex structs from the vertices in the subset
-				for ( const Kiwi::Mesh::Vertex& vertex : subset.vertices )
-				{
-					Kiwi::Mesh::ShaderVertex vert;
-					vert.position = DirectX::XMFLOAT3(vertex.position.x, vertex.position.y, vertex.position.z );
-					vert.tex = DirectX::XMFLOAT2(vertex.textureUV.x, vertex.textureUV.y);
-					vert.normal = DirectX::XMFLOAT3(vertex.normals.x, vertex.normals.y, vertex.normals.z);
-					shaderVerts.push_back(vert);
-					indices.push_back(index);
-					index++;
-				}
-
-				subset.endIndex = index;
-			}
-
-			//copy the data into the buffers
-			m_vertexBuffer->SetData(shaderVerts);
-			m_indexBuffer->SetData(indices);
-
-		}catch (...)
-		{
-			throw;
-		}
-
+		this->_SetRenderTarget( L"Backbuffer" );
 	}
 
 	Mesh::~Mesh()
 	{
-
-		Kiwi::FreeMemory( m_assetFiles );
-		Kiwi::FreeMemory(m_subsets);
-
-		SAFE_DELETE(m_vertexBuffer);
-		SAFE_DELETE(m_indexBuffer);
-
+		this->_UnsetRenderTarget();
 	}
 
-	void Mesh::Bind( Kiwi::Renderer* renderer )
+	bool Mesh::_AddToRenderTargetQueue()
 	{
+		if( m_meshModel == nullptr ) return false;
 
-		if( renderer == 0 )
+		/*get a pointer to the render target*/
+		Kiwi::Renderer* renderer = _kGraphics.GetActiveRenderer();
+		if( renderer == nullptr ) return false;
+
+		Kiwi::RenderTarget* rt = renderer->FindRenderTarget( m_renderTarget );
+		if( rt == nullptr )
 		{
-			throw Kiwi::Exception( L"Mesh::Bind", L"[" + m_name + L"] Invalid Renderer" );
+			m_renderTarget = L"";
+			m_renderTargetID = 0;
+			m_renderGroupID = 0;
+			m_viewportIndex = 0;
+			m_addedToRenderTargetQueue = false;
+			return false;
 		}
 
-		if( m_vertexBuffer == 0 || m_indexBuffer == 0 )
-		{
-			throw Kiwi::Exception( L"Mesh::Bind", L"[" + m_name + L"] Mesh buffers invalid" );
-		}
+		/*add the mesh to the render target's render queue*/
+		Kiwi::RenderQueue* rq = &rt->GetRenderQueue();
+		rq->AddMesh( *this );
 
-		unsigned int stride = sizeof( ShaderVertex );
-		unsigned int offset = 0;
+		m_addedToRenderTargetQueue = true;
 
-		ID3D11DeviceContext* deviceCon = renderer->GetDeviceContext();
-
-		// set the vertex buffer to active so it can be rendered
-		ID3D11Buffer* vBuffer = m_vertexBuffer->GetD3DBuffer();
-		deviceCon->IASetVertexBuffers( 0, 1, &vBuffer, &stride, &offset );
-		// same for index buffer
-		ID3D11Buffer* iBuffer = m_indexBuffer->GetD3DBuffer();
-		deviceCon->IASetIndexBuffer( iBuffer, DXGI_FORMAT_R32_UINT, 0 );
-
+		return true;
 	}
 
-	void Mesh::SetData( std::vector<Kiwi::Mesh::Vertex> meshData )
+	Kiwi::EventResponse Mesh::_OnAssetFetched( Kiwi::IAsset* asset )
 	{
+		/*take no action if the asset isn't right*/
+		if( asset == nullptr || asset->GetAssetName().compare(m_modelName) != 0 ) return Kiwi::EventResponse::NONE;
 
+		/*attempt to link the model*/
+		this->SetModel( dynamic_cast<Kiwi::IModel*>(asset), m_copyModelOnFetch );
+
+		/*stop listening if the model was successfully linked*/
+		return ( m_meshModel != nullptr ) ? Kiwi::EventResponse::DISCONNECT_THIS : Kiwi::EventResponse::NONE;
+	}
+
+	void Mesh::_OnAttached()
+	{
+		m_objectName = m_entity->GetName() + L"/Mesh";
+	}
+
+	void Mesh::_OnActivate()
+	{
+		this->_AddToRenderTargetQueue();
+	}
+
+	void Mesh::_OnDeactivate()
+	{
+		this->_RemoveFromRenderTargetQueue();
+	}
+
+	void Mesh::_OnShutdown()
+	{
+		if( m_meshModel != nullptr )
+		{
+			m_meshModel->_UnlinkMesh( *this );
+			m_meshModel->Free();
+		}
+
+		this->_RemoveFromRenderTargetQueue();
+	}
+
+	void Mesh::_OnStart()
+	{
+		/*if a mesh asset was specified before the mesh was started, attempt to retreive it now*/
+		if( m_meshModel == nullptr && m_modelName.size() > 0 )
+		{
+			this->FetchAsset( L"Model", m_modelName );
+		}
+
+		this->_AddToRenderTargetQueue();
+	}
+
+	void Mesh::_RemoveFromRenderTargetQueue()
+	{
+		/*get a pointer to the render target*/
+		Kiwi::Renderer* renderer = _kGraphics.GetActiveRenderer();
+		if( renderer == nullptr ) return;
+
+		Kiwi::RenderTarget* rt = renderer->FindRenderTarget( m_renderTarget );
+		if( rt == nullptr )
+		{
+			m_renderTarget = L"";
+			m_renderTargetID = 0;
+			m_renderGroupID = 0;
+			m_viewportIndex = 0;
+			m_addedToRenderTargetQueue = false;
+			return;
+		}
+
+		/*add the mesh to the render target's render queue*/
+		Kiwi::RenderQueue* rq = &rt->GetRenderQueue();
+		rq->RemoveMesh( *this );
+
+		m_addedToRenderTargetQueue = false;
+	}
+
+	bool Mesh::_SetRenderTarget( const std::wstring& renderTarget )
+	{
+		/*get a pointer to the render target*/
+		Kiwi::Renderer* renderer = _kGraphics.GetActiveRenderer();
+		if( renderer == nullptr ) return false;
+
+		Kiwi::RenderTarget* rt = renderer->FindRenderTarget( renderTarget );
+		if( rt == nullptr )
+		{
+			m_renderTarget = L"";
+			m_renderTargetID = 0;
+			m_renderGroupID = 0;
+			m_viewportIndex = 0;
+			return false;
+		}
+
+		/*update the mesh's stored render target and render target id*/
+		m_renderTarget = renderTarget;
+		m_renderTargetID = rt->GetUID();
+
+		/*add the mesh to the render target's render queue*/
+		if( m_meshModel != nullptr )
+		{
+			Kiwi::RenderQueue* rq = &rt->GetRenderQueue();
+			if( m_started == true && m_isActive == true && GameObject::m_isShutdown == false && m_meshModel != nullptr )
+			{
+				rq->AddMesh( *this );
+			}
+
+			/*set the mesh's render group id*/
+			Kiwi::RenderGroup* rqg = rq->FindRenderGroup( m_renderGroup );
+			if( rqg != nullptr )
+			{
+				m_renderGroupID = rqg->id;
+				m_viewportIndex = rqg->viewportIndex;
+
+			} else
+			{
+				m_renderGroupID = 0;
+				m_viewportIndex = 0;
+			}
+		}
+
+		return true;
+	}
+
+	void Mesh::_UnsetRenderTarget()
+	{
+		/*get a pointer to the render target*/
+		Kiwi::Renderer* renderer = _kGraphics.GetActiveRenderer();
+		if( renderer == nullptr ) return;
+
+		m_renderTarget = L"";
+		m_renderTargetID = 0;
+		m_renderGroupID = 0;
+		m_viewportIndex = 0;
+
+		Kiwi::RenderTarget* rt = renderer->FindRenderTarget( m_renderTarget );
+		if( rt == nullptr ) return;
+
+		/*remove the mesh from the render target's render queue*/
+		Kiwi::RenderQueue* rq = &rt->GetRenderQueue();
+		rq->RemoveMesh( *this );
+	}
+
+	void Mesh::Clear()
+	{
+		if( m_meshModel != nullptr )
+		{
+			m_meshModel->_UnlinkMesh( *this );
+			m_meshModel->Free();
+			m_meshModel = nullptr;
+		}
+	}
+
+	bool Mesh::IntersectRay( const Kiwi::Vector3d& rayOrigin, const Kiwi::Vector3d& rayDirection, double maxDepth, std::vector<Kiwi::Mesh::Face>& collisions, int maxCollisions, bool includeBackFaces )
+	{
+		/*
+		uses Möller–Trumbore intersection algorithm
+		https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+		http://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection
+		*/
+
+		int numCollisions = 0;
+
+		if( m_meshModel == nullptr ) return false;
+
+		Kiwi::Transform* entTransform = m_entity->FindComponent<Kiwi::Transform>( Kiwi::ComponentType::Transform );
+		if( entTransform == 0 )
+		{
+			return false;
+		}
+
+		Kiwi::Vector3d globalPos = entTransform->GetGlobalPosition();
+		Kiwi::Vector3d scale = entTransform->GetScale();
+		Kiwi::Vector3d maxPos = rayOrigin + (rayDirection * maxDepth);
+
+		std::vector<Kiwi::Vertex> vertices = m_meshModel->GetVertices();
+
+		if( m_entity != 0 && m_meshModel->GetPrimitiveTopology() == Kiwi::TRIANGLE_LIST )
+		{
+			for( unsigned int i = 0; i < vertices.size(); i += 3 )
+			{
+
+				if( (vertices[i].position.z + globalPos.z > maxPos.z && vertices[i + 1].position.z + globalPos.z > maxPos.z && vertices[i + 2].position.z + globalPos.z > maxPos.z) ||
+					(vertices[i].position.z + globalPos.z < rayOrigin.z && vertices[i + 1].position.z + globalPos.z < rayOrigin.z && vertices[i + 2].position.z + globalPos.z < rayOrigin.z) )
+				{
+					continue;
+				}
+
+				Kiwi::Vector3d edge1, edge2;
+				edge1 = vertices[i + 1].position - vertices[i].position; //v1 - v0
+				edge2 = vertices[i + 2].position - vertices[i].position; //v2 - v0
+				edge1 = edge1 * scale.x;
+				edge2 = edge2 * scale.y;
+
+				Kiwi::Vector3d phit = rayDirection.Cross( edge2 ); //point where ray intersects plane of triangle
+
+				double determinant = edge1.Dot( phit );
+
+				double t = 0.0;
+
+				if( includeBackFaces )
+				{
+					// if the determinant is negative the triangle is backfacing
+					// if the determinant is close to 0, the ray misses the triangle
+					if( determinant < 0.000001 ) continue;
+
+					Kiwi::Vector3d tVec = rayOrigin - ((vertices[i].position * scale.x) + globalPos); //origin - v0
+
+					double u = tVec.Dot( phit );
+					if( u < 0.0 || u > determinant ) continue;
+
+					Kiwi::Vector3d qVec = tVec.Cross( edge1 );
+					double v = rayDirection.Dot( qVec );
+					if( v < 0.0 || u + v > determinant ) continue;
+
+				} else
+				{
+					// ray and triangle are parallel if det is close to 0
+					if( std::abs( determinant ) < 0.000001 ) continue;
+
+					double invDet = 1.0 / determinant;
+
+					Kiwi::Vector3d tVec = rayOrigin - ((vertices[i].position * scale.x) + globalPos); //origin - v0
+
+					double u = tVec.Dot( phit ) * invDet;
+					if( u < 0.0 || u > 1.0 ) continue;
+
+					Kiwi::Vector3d qVec = tVec.Cross( edge1 );
+					double v = rayDirection.Dot( qVec ) * invDet;
+					if( v < 0.0 || u + v > 1.0 ) continue;
+				}
+
+				//if( t > 0.000001 )
+				//{
+					Face tri;
+					tri.v1 = vertices[i].position;
+					tri.v2 = vertices[i + 1].position;
+					tri.v3 = vertices[i + 2].position;
+
+					tri.n1 = vertices[i].normal;
+					tri.n2 = vertices[i + 1].normal;
+					tri.n3 = vertices[i + 2].normal;
+
+					tri.i1 = m_meshModel->GetIndices()[i];
+					tri.i2 = m_meshModel->GetIndices()[i + 1];
+					tri.i3 = m_meshModel->GetIndices()[i + 2];
+
+					tri.c1 = vertices[i].color;
+					tri.c2 = vertices[i + 1].color;
+					tri.c3 = vertices[i + 2].color;
+
+					collisions.push_back( tri );
+
+					if( maxCollisions > 0 && numCollisions > maxCollisions ) return (collisions.size() != 0);
+				//}
+			}
+		}
+
+		return (collisions.size() != 0);
+	}
+
+	bool Mesh::SetRenderGroup( const std::wstring& renderGroupName )
+	{
+		/*get a pointer to the render target*/
+		Kiwi::Renderer* renderer = _kGraphics.GetActiveRenderer();
+		if( renderer == nullptr ) return false;
+
+		Kiwi::RenderTarget* rt = renderer->FindRenderTarget( m_renderTarget );
+		if( rt == nullptr )
+		{
+			m_renderTarget = L"";
+			m_renderTargetID = 0;
+			m_renderGroupID = 0;
+			m_viewportIndex = 0;
+			return false;
+		}
+
+		/*add the mesh to the render target's render queue*/
+		Kiwi::RenderQueue* rq = &rt->GetRenderQueue();
+
+		/*set the mesh's render group id*/
+		Kiwi::RenderGroup* rqg = rq->FindRenderGroup( renderGroupName );
+		if( rqg != nullptr )
+		{
+			m_renderGroupID = rqg->id;
+			m_viewportIndex = rqg->viewportIndex;
+			m_renderGroup = renderGroupName;
+
+		} else
+		{
+			m_renderGroupID = 0;
+			m_viewportIndex = 0;
+		}
+
+		return true;
+	}
+
+	bool Mesh::SetRenderTarget( const std::wstring& renderTarget )
+	{
+		if( m_renderTarget.compare( renderTarget ) == 0 ) return true;		
+
+		if( m_renderTarget.size() > 0 ) this->_UnsetRenderTarget();
+
+		return this->_SetRenderTarget( renderTarget );
+	}
+
+	void Mesh::SetModel( const std::wstring& modelName, bool copyOriginal )
+	{
+		/*either fetch the asset or add the mesh as a listener for the model if it isn't loaded yet*/
+		m_modelName = modelName;
+
+		if( m_modelName.size() > 0 )
+		{
+			m_copyModelOnFetch = copyOriginal;
+			this->FetchAsset( L"Model", m_modelName );
+
+		} else
+		{
+			this->SetModel( nullptr );
+		}
+	}
+
+	void Mesh::SetModel( Kiwi::IModel* model, bool copyOriginal )
+	{
+		if( m_meshModel != nullptr && (model == nullptr || model->GetAssetName().compare(m_meshModel->GetAssetName()) != 0) )
+		{
+			if( m_addedToRenderTargetQueue ) this->_RemoveFromRenderTargetQueue();
+			m_meshModel->_UnlinkMesh( *this );
+			m_meshModel->Free();
+			m_meshModel = nullptr;
+		}
+
+		m_meshModel = model;
+		if( m_meshModel == nullptr ) return;
 		
-		std::vector<Kiwi::Mesh::Subset> subsetVector( 1 );
-		subsetVector[0].vertices = meshData;
-
-		this->SetData( subsetVector );
-
-	}
-
-	void Mesh::SetData(std::vector<Kiwi::Mesh::Subset> meshData)
-	{
-
-		//convert the mesh subset data into an array of ShaderVertex structs and also
-		//generate the indices for the index buffer
-		unsigned long index = 0;
-		std::vector<Kiwi::Mesh::ShaderVertex> shaderVerts;
-		std::vector<unsigned long> indices;
-		for ( Kiwi::Mesh::Subset& subset : meshData)
+		/*if the model isn't shared and copyOriginal is true, create a new copy exclusive to this mesh*/
+		if( m_meshModel->IsShared() == false && copyOriginal == true )
 		{
-
-			//check for transparency
-			if (subset.material.GetTransparency() != 1.0f) m_hasTransparency = true;
-
-			subset.material.SetMesh( this );
-			subset.startIndex = index;
-
-			//generate ShaderVertex structs from the vertices in the subset
-			for (const Kiwi::Mesh::Vertex& vertex : subset.vertices)
-			{
-				Kiwi::Mesh::ShaderVertex vert;
-				vert.position = DirectX::XMFLOAT3(vertex.position.x, vertex.position.y, vertex.position.z );
-				vert.tex = DirectX::XMFLOAT2(vertex.textureUV.x, vertex.textureUV.y);
-				vert.normal = DirectX::XMFLOAT3(vertex.normals.x, vertex.normals.y, vertex.normals.z);
-				shaderVerts.push_back(vert);
-				indices.push_back(index);
-				index++;
-			}
-
-			subset.endIndex = index;
+			m_meshModel = _kAssetManager.CopyAsset<Kiwi::IModel>( L"Model", model->GetAssetName(), m_objectName + L"/Model" );
 		}
+		if( m_meshModel == nullptr ) return;
 
-		try
-		{
-			//if the buffers haven't been created yet, do so now
-			if( !m_vertexBuffer )
-			{
-				m_vertexBuffer = new Kiwi::VertexBuffer<Kiwi::Mesh::ShaderVertex>( m_name + L"/VertexBuffer", m_renderer, index );
-			}
-
-			if( !m_indexBuffer )
-			{
-				m_indexBuffer = new Kiwi::IndexBuffer( m_name + L"/IndexBuffer", m_renderer, index );
-			}
-
-			//copy the data into the buffers
-			if( shaderVerts.size() > m_vertexBuffer->GetCapacity() )
-			{
-				m_vertexBuffer->Resize( shaderVerts.size() );
-			}
-			if( indices.size() > m_indexBuffer->GetCapacity() )
-			{
-				m_indexBuffer->Resize( indices.size() );
-			}
-				
-			m_vertexBuffer->SetData( shaderVerts );
-			m_indexBuffer->SetData( indices );
-
-			//copied successfully, get rid of the old mesh data
-			Kiwi::FreeMemory(m_subsets);
-
-			m_subsets = meshData;
-
-		} catch (...)
-		{
-			throw;
-		}
-
-	}
-
-	void Mesh::SetSubsetMaterial(unsigned int index, const Kiwi::Material& newMaterial)
-	{
-
-		if (index >= m_subsets.size()) return;
-
-		//set the new material
-		m_subsets[index].material = newMaterial;
-
-	}
-
-	Kiwi::Material* Mesh::GetSubsetMaterial(unsigned int subset)
-	{
-
-		if (subset >= m_subsets.size()) return 0;
-
-		return &m_subsets[subset].material;
-
-	}
-
-	Kiwi::Mesh::Subset* Mesh::GetSubset(unsigned int subset)
-	{
-
-		if (subset >= m_subsets.size()) return 0;
-
-		return &m_subsets[subset];
-
-	}
-
-	int Mesh::GetIndexCount()const
-	{
-
-		if (m_indexBuffer == 0) return 0;
-
-		return m_indexBuffer->GetElementCount();
-
-	}
-
-	int Mesh::GetVertexCount()const
-	{
-
-		if (m_vertexBuffer == 0) return 0;
-
-		return m_vertexBuffer->GetElementCount();
-
-	}
-
-	Kiwi::IBuffer* Mesh::GetVertexBuffer()
-	{
-
-		return m_vertexBuffer;
-
-	}
-
-	Kiwi::IBuffer* Mesh::GetIndexBuffer()
-	{
-
-		return m_indexBuffer;
-
+		m_meshModel->_LinkMesh( *this );
+		m_meshModel->Reserve();
+		m_modelName = m_meshModel->GetAssetName();
+		
+		this->_AddToRenderTargetQueue();
 	}
 
 
 	//----Static member functions
 
-	Kiwi::Mesh* Mesh::Rectangle( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector3& dimensions )
-	{
+	//Kiwi::Mesh* Mesh::Primitive( std::wstring name, Kiwi::Scene& scene, Kiwi::Mesh::PRIMITIVE_TYPE primitiveType )
+	//{
+	//	switch( primitiveType )
+	//	{
+	//		case Mesh::PRIMITIVE_TYPE::QUAD:
+	//			{
+	//				float xPos = 0.5;
+	//				float yPos = 0.5;
 
-		float xPos = dimensions.x / 2.0f;
-		float yPos = dimensions.y / 2.0f;
-		float zPos = dimensions.z / 2.0f;
+	//				std::vector<Kiwi::Vector3d> meshVertices = {
+	//					Kiwi::Vector3d( -xPos, yPos, 0.0f ),
+	//					Kiwi::Vector3d( xPos, yPos, 0.0f ),
+	//					Kiwi::Vector3d( -xPos, -yPos, 0.0f ),
+	//					Kiwi::Vector3d( -xPos, -yPos, 0.0f ),
+	//					Kiwi::Vector3d( xPos, yPos, 0.0f ),
+	//					Kiwi::Vector3d( xPos, -yPos, 0.0f )
+	//				};
 
-		std::vector<Kiwi::Mesh::Vertex> meshVertices = {
-			//back face
-			Kiwi::Mesh::Vertex( -xPos, yPos, -zPos, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( xPos, yPos, -zPos, 1.0f, 0.0f, 0.0f,  0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos, -zPos, 0.0f, 1.0f,  0.0f,  0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos, -zPos, 0.0f, 1.0f,  0.0f,  0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( xPos, yPos, -zPos, 1.0f, 0.0f,  0.0f,  0.0f, -1.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 1.0f, 1.0f,  0.0f,  0.0f, -1.0f ),
-			//right face
-			Kiwi::Mesh::Vertex( xPos, yPos, -zPos, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos, yPos, zPos, 1.0f, 0.0f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.0f, 1.0f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 0.0f, 1.0f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos, yPos, zPos, 1.0f, 0.0f,  1.0f,  0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, zPos, 1.0f, 1.0f,  1.0f,  0.0f,  0.0f ),
-			//front face
-			Kiwi::Mesh::Vertex( xPos, yPos, zPos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, yPos, zPos, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, zPos, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, zPos, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, yPos, zPos, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos, zPos, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
-			//left face
-			Kiwi::Mesh::Vertex( -xPos , yPos  ,zPos, 0.0f ,0.0f ,-1.0f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos , yPos, -zPos, 1.0f, 0.0f ,-1.0f , 0.0f,  0.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos , zPos, 0.0f ,1.0f, -1.0f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos,  zPos ,0.0f ,1.0f, -1.0f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos,  yPos, -zPos, 1.0f ,0.0f, -1.0f , 0.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos ,-yPos, -zPos ,1.0f ,1.0f ,-1.0f, 0.0f, 0.0f ),
-			//top face
-			Kiwi::Mesh::Vertex( -xPos,  yPos,  zPos ,0.0f, 0.0f , 0.0f,  1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos,  yPos,  zPos, 1.0f, 0.0f , 0.0f,  1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos,  yPos, -zPos, 0.0f, 1.0f,  0.0f , 1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos , yPos ,-zPos, 0.0f ,1.0f,  0.0f , 1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos, yPos , zPos, 1.0f, 0.0f , 0.0f , 1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos  ,yPos, -zPos, 1.0f, 1.0f , 0.0f , 1.0f, 0.0f ),
-			//bottom face
-			Kiwi::Mesh::Vertex( -xPos ,-yPos ,-zPos, 0.0f, 0.0f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos ,-yPos, -zPos, 1.0f, 0.0f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos,  zPos, 0.0f ,1.0f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( -xPos ,-yPos,  zPos, 0.0f, 1.0f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, -zPos, 1.0f, 0.0f,  0.0f ,-1.0f, 0.0f ),
-			Kiwi::Mesh::Vertex( xPos ,-yPos , zPos, 1.0f, 1.0f,  0.0f, -1.0f, 0.0f )
-		};
+	//				std::vector<Kiwi::Vector3d> meshNormals = {
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//				};
 
-		Kiwi::Mesh* rectangle = new Kiwi::Mesh( name, L"", renderer, meshVertices );
+	//				std::vector<Kiwi::Vector2d> meshUVs = {
+	//					Kiwi::Vector2d( 0.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 1.0 ),
+	//				};
 
-		return rectangle;
+	//				Kiwi::Mesh* quad = new Kiwi::Mesh( name, scene, meshVertices, meshUVs, meshNormals );
+	//				quad->CreateSubmesh( Kiwi::Material(), 0, 5 );
 
-	}
+	//				return quad;
+	//			}
+	//		case Mesh::PRIMITIVE_TYPE::CUBE:
+	//			{
+	//				double xPos = 0.5;
+	//				double yPos = 0.5;
+	//				double zPos = 0.5;
 
-	Kiwi::Mesh* Mesh::Quad( std::wstring name, Kiwi::Renderer* renderer, const Kiwi::Vector2& dimensions )
-	{
+	//				std::vector<Kiwi::Vector3d> meshVertices = {
+	//					//back face
+	//					Kiwi::Vector3d( -xPos, yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, yPos, -zPos ),
+	//					Kiwi::Vector3d( -xPos, -yPos, -zPos ),
+	//					Kiwi::Vector3d( -xPos, -yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, -zPos ),
+	//					//right face
+	//					Kiwi::Vector3d( xPos, yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, zPos ),
+	//					//front face
+	//					Kiwi::Vector3d( xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( -xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, zPos ),
+	//					Kiwi::Vector3d( -xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( -xPos, -yPos, zPos ),
+	//					//left face
+	//					Kiwi::Vector3d( -xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( -xPos, yPos, -zPos ),
+	//					Kiwi::Vector3d( -xPos, -yPos, zPos ),
+	//					Kiwi::Vector3d( -xPos, -yPos, zPos ),
+	//					Kiwi::Vector3d( -xPos, yPos, -zPos ),
+	//					Kiwi::Vector3d( -xPos, -yPos, -zPos ),
+	//					//top face
+	//					Kiwi::Vector3d( -xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( -xPos, yPos, -zPos ),
+	//					Kiwi::Vector3d( -xPos, yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, yPos, zPos ),
+	//					Kiwi::Vector3d( xPos, yPos, -zPos ),
+	//					//bottom face
+	//					Kiwi::Vector3d( -xPos, -yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, -zPos ),
+	//					Kiwi::Vector3d( -xPos, -yPos, zPos ),
+	//					Kiwi::Vector3d( -xPos, -yPos, zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, -zPos ),
+	//					Kiwi::Vector3d( xPos, -yPos, zPos )
+	//				};
 
-		float xPos = dimensions.x / 2.0f;
-		float yPos = dimensions.y / 2.0f;
+	//				std::vector<Kiwi::Vector3d> meshNormals = {
+	//					//back face
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, -1.0 ),
+	//					//right face
+	//					Kiwi::Vector3d( 1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( 1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( 1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( 1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( 1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( 1.0, 0.0, 0.0 ),
+	//					//front face
+	//					Kiwi::Vector3d( 0.0, 0.0, 1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, 1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, 1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, 1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, 1.0 ),
+	//					Kiwi::Vector3d( 0.0, 0.0, 1.0 ),
+	//					//left face
+	//					Kiwi::Vector3d( -1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( -1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( -1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( -1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( -1.0, 0.0, 0.0 ),
+	//					Kiwi::Vector3d( -1.0, 0.0, 0.0 ),
+	//					//top face
+	//					Kiwi::Vector3d( 0.0, 1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, 1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, 1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, 1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, 1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, 1.0, 0.0 ),
+	//					//bottom face
+	//					Kiwi::Vector3d( 0.0, -1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, -1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, -1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, -1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, -1.0, 0.0 ),
+	//					Kiwi::Vector3d( 0.0, -1.0, 0.0 ),
+	//				};
 
-		std::vector<Kiwi::Mesh::Vertex> meshVertices = {
-			Kiwi::Mesh::Vertex( xPos, yPos, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, yPos, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( xPos, -yPos, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, yPos, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f ),
-			Kiwi::Mesh::Vertex( -xPos, -yPos, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
-		};
+	//				std::vector<Kiwi::Vector2d> meshUVs = {
+	//					//back face
+	//					Kiwi::Vector2d( 0.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 1.0 ),
+	//					//right face
+	//					Kiwi::Vector2d( 0.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 1.0 ),
+	//					//front face
+	//					Kiwi::Vector2d( 0.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 1.0 ),
+	//					//left face
+	//					Kiwi::Vector2d( 0.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 1.0 ),
+	//					//top face
+	//					Kiwi::Vector2d( 0.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 1.0 ),
+	//					//bottom face
+	//					Kiwi::Vector2d( 0.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 0.0, 1.0 ),
+	//					Kiwi::Vector2d( 1.0, 0.0 ),
+	//					Kiwi::Vector2d( 1.0, 1.0 ),
+	//				};
 
-		Kiwi::Mesh* quad = new Kiwi::Mesh( name, L"", renderer, meshVertices );
+	//				Kiwi::Mesh* cube = new Kiwi::Mesh( name, scene, meshVertices, meshUVs, meshNormals );
+	//				cube->CreateSubmesh( Kiwi::Material(), 0, 35 );
 
-		return quad;
-
-	}
+	//				return cube;
+	//			}
+	//		default: return 0;
+	//	}
+	//}
 
 };

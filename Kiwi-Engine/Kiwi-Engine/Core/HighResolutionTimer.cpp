@@ -1,5 +1,4 @@
 #include "HighResolutionTimer.h"
-#include "Logger.h"
 #include "Math.h"
 #include "Utilities.h"
 
@@ -29,7 +28,6 @@ namespace Kiwi
 
 	void HighResolutionTimer::StartTimer()
 	{
-
 		this->Reset();
 
 		//get the 64-bit integer containing the number of counts per second
@@ -43,7 +41,6 @@ namespace Kiwi
 		m_frameTimeOld = m_counterStart;
 
 		m_started = true;
-
 	}
 
 	void HighResolutionTimer::Update()

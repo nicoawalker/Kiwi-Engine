@@ -66,6 +66,7 @@ namespace Kiwi
 			for( ; it != m_components.end(); )
 			{
 				SAFE_DELETE( it->second );
+				it = m_components.erase( it );
 			}
 
 			Kiwi::FreeMemory( m_components );

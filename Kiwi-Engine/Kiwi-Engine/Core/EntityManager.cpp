@@ -1,140 +1,164 @@
 #include "EntityManager.h"
 #include "Entity.h"
+#include "Exception.h"
 #include "Utilities.h"
+#include "GameObjectManager.h"
+
+#include "../Graphics/RenderQueue.h"
+#include "..\Graphics\Mesh.h"
+
+#include <algorithm>
 
 namespace Kiwi
 {
 
-	EntityManager::EntityManager()
+	EntityManager::EntityManager( Kiwi::Scene& scene )
 	{
-
+		m_scene = &scene;
 	}
 
 	EntityManager::~EntityManager()
 	{
-
-		auto it = m_entities.begin();
-		for(; it != m_entities.end();)
+		/*need to release all entities*/
+		for( auto itr = m_entities.begin(); itr != m_entities.end(); itr++ )
 		{
-			SAFE_DELETE(it->second);
-			it = m_entities.erase(it);
+			if( itr->second != nullptr )
+			{
+				itr->second->Free(); //decrement the reference count
+			}
 		}
-
 	}
 
-	void EntityManager::Update()
+	/*Kiwi::RenderQueue* EntityManager::GenerateRenderQueue()
 	{
 
-		for( auto entity : m_entities )
+		m_renderQueue.Generate( m_entities );
+		return &m_renderQueue;
+
+	}*/
+
+	std::vector<Kiwi::Mesh*> EntityManager::GenerateMeshRenderList()
+	{
+		std::vector<Kiwi::Mesh*> meshList;
+
+		for( auto& keyValuePair : m_entities )
 		{
-			if( entity.second->IsActive() )
+			Kiwi::Entity* entity = keyValuePair.second;
+
+			if( entity != nullptr && entity->IsActive() && entity->IsShutdown() == false )
 			{
-				entity.second->Update();
+				Kiwi::Mesh* mesh = entity->FindComponent<Kiwi::Mesh>( Kiwi::ComponentType::Mesh );
+				if( mesh != nullptr && mesh->IsActive() && mesh->IsShutdown() == false )
+				{
+					meshList.push_back( mesh );
+				}
 			}
 		}
 
+		return meshList;
 	}
 
-	void EntityManager::FixedUpdate()
+	/*void EntityManager::ClearRenderQueue()
 	{
 
-		for(auto entity : m_entities)
+		m_renderQueue.Clear();
+
+	}*/
+
+	void EntityManager::Clear()
+	{
+		/*need to release all entities before removing them all*/
+		for( auto itr = m_entities.begin(); itr != m_entities.end(); itr++ )
 		{
-			if(entity.second->IsActive())
+			if( itr->second != 0 )
 			{
-				entity.second->FixedUpdate();
+				itr->second->Free(); //decrement the reference count
 			}
 		}
 
+		m_entities.clear();
 	}
 
-	void EntityManager::AddEntity(Kiwi::Entity* entity)
+	void EntityManager::ManageEntity( Kiwi::Entity* entity )
 	{
+		if( entity == 0 ) return;
 
-		if(entity == 0) return;
+		entity->Reserve(); //increment reference count so entity will not be destroyed until freed
 
-		m_entities[entity->GetName()] = entity;
+		m_entities.insert( std::make_pair( entity->GetName(), entity ) );
+	}
 
-		/*switch( entity->GetType() )
+	void EntityManager::Raytrace( const Kiwi::Vector3d& origin, const Kiwi::Vector3d& direction, double maxDepthFromOrigin, std::vector<Kiwi::Entity*>& hits )
+	{
+		auto itr = m_entities.begin();
+		for( ; itr != m_entities.end(); itr++ )
 		{
-			case Entity::ENTITY_3D:
-				{
-
-
-
-					break;
-				}
-			case Entity::ENTITY_2D:
-				{
-
-					break;
-				}
-			case Entity::ENTITY_LIGHT:
-				{
-
-					break;
-				}
-			case Entity::ENTITY_SOUND:
-				{
-					break;
-				}
-			default: break;
-		}*/
-
-	}
-
-	void EntityManager::Destroy(Kiwi::Entity* entity)
-	{
-
-		if(entity == 0) return;
-
-		this->DestroyWithName(entity->GetName());
-
-	}
-
-	void EntityManager::DestroyWithName(std::wstring name)
-	{
-
-		auto it = m_entities.find(name);
-		if(it != m_entities.end())
-		{
-			//found it, delete it
-			SAFE_DELETE(it->second);
-			m_entities.erase(it);
-		}
-
-	}
-
-	void EntityManager::DestroyAll()
-	{
-
-		auto it = m_entities.begin();
-		for(; it != m_entities.end();)
-		{
-			SAFE_DELETE(it->second);
-			it = m_entities.erase(it);
-		}
-
-	}
-
-	void EntityManager::DestroyInactive()
-	{
-
-		auto inactiveIt = m_entities.begin();
-		for(; inactiveIt != m_entities.end();)
-		{
-			if( !inactiveIt->second->IsActive() )
+			if( itr->second != 0 && itr->second->IsShutdown() == false && itr->second->IsActive() && itr->second->HasTag(L"terrain") == false )
 			{
-				SAFE_DELETE( inactiveIt->second );
-				inactiveIt = m_entities.erase( inactiveIt );
+				Kiwi::Mesh* mesh = itr->second->FindComponent<Kiwi::Mesh>( Kiwi::ComponentType::Mesh );
+				if( mesh != 0 && mesh->IsShutdown() == false && mesh->IsActive() == true )
+				{
+					Kiwi::Transform* transform = itr->second->FindComponent<Kiwi::Transform>( Kiwi::ComponentType::Transform );
+					if( transform != 0 && transform->GetSquareDistance(origin) <= maxDepthFromOrigin * maxDepthFromOrigin )
+					{
+						std::vector<Kiwi::Mesh::Face> tIntersect;
+						mesh->IntersectRay( origin, direction, maxDepthFromOrigin, tIntersect, true );
+						if( tIntersect.size() > 0 )
+						{
+							hits.push_back( itr->second );
+						}
+					}
+				}
 			}
 		}
 
+		//sort the entities based on distance from the origin
+		std::sort( hits.begin(), hits.end(), [origin]( Kiwi::Entity* e1, Kiwi::Entity* e2 )
+		{
+			Kiwi::Transform* m1T = e1->FindComponent<Kiwi::Transform>( Kiwi::ComponentType::Transform );
+			Kiwi::Transform* m2T = e2->FindComponent<Kiwi::Transform>( Kiwi::ComponentType::Transform );
+
+			if( m1T && m2T )
+			{
+				return m1T->GetSquareDistance( origin ) < m2T->GetSquareDistance( origin );
+
+			} else
+			{
+				return true;
+			}
+		} );
 	}
 
-	Kiwi::Entity* EntityManager::FindWithName(std::wstring name)
+	void EntityManager::ShutdownAll()
 	{
+		for( auto it = m_entities.begin(); it != m_entities.end(); it++ )
+		{
+			if( it->second != 0 )
+			{
+				it->second->Shutdown();
+			}
+		}
+	}
 
+	void EntityManager::CleanUp()
+	{
+		for( auto sdItr = m_entities.begin(); sdItr != m_entities.end();)
+		{
+			if( sdItr->second == 0 || sdItr->second->IsShutdown() )
+			{
+				if( sdItr->second != 0 ) sdItr->second->Free(); //decrement the reference count
+
+				sdItr = m_entities.erase( sdItr );
+
+			} else
+			{
+				sdItr++;
+			}
+		}
+	}
+
+	Kiwi::Entity* EntityManager::Find(std::wstring name)
+	{
 		auto it = m_entities.find(name);
 		if(it != m_entities.end())
 		{
@@ -143,24 +167,33 @@ namespace Kiwi
 		}
 
 		return 0;
-
 	}
 
-	std::vector<Kiwi::Entity*> EntityManager::FindAllWithTag(std::wstring tag)
+	Kiwi::EntityList EntityManager::FindAll( std::wstring name )
 	{
+		Kiwi::EntityList matches;
 
-		std::vector<Kiwi::Entity*> matches;
-
-		for(auto entity : m_entities)
+		for( auto objItr = m_entities.equal_range( name ).first; objItr != m_entities.equal_range( name ).second; objItr++ )
 		{
-			if(entity.second->HasTag(tag))
+			matches.push_back( objItr->second );
+		}
+
+		return matches;
+	}
+
+	Kiwi::EntityList EntityManager::FindAllWithTag(std::wstring tag)
+	{
+		Kiwi::EntityList matches;
+
+		for(auto& entity : m_entities)
+		{
+			if( entity.second != 0 && entity.second->HasTag(tag))
 			{
-				matches.push_back(entity.second);
+				matches.push_back( entity.second );
 			}
 		}
 
 		return matches;
-
 	}
 
 };

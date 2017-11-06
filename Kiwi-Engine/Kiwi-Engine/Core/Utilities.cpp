@@ -1,11 +1,27 @@
 #include "Utilities.h"
+#include "Math.h"
 
 #include "../Graphics/DirectX.h"
 
 #include <Windows.h>
+#include <mutex>
+#include <algorithm>
+#include <cwctype>
 
 namespace Kiwi
 {
+
+	long long NewUID()
+	{
+		static std::mutex idMutex;
+		static long long current = 0;
+
+		std::lock_guard<std::mutex> guard( idMutex );
+
+		current += 1;
+
+		return current;
+	}
 
 	std::wstring s2ws(const std::string& s1)
 	{
@@ -23,6 +39,27 @@ namespace Kiwi
 		return wstr;
 	}
 
+	void MakeLowercase( std::wstring& string )
+	{
+		std::transform( string.begin(), string.end(), string.begin(), std::towlower );
+	}
+
+	double Lerp( double lower, double upper, double t )
+	{
+		Kiwi::clamp( t, 0.0, 1.0 );
+		return lower + t * (upper - lower);
+	}
+
+	double CosineInterpolate( double lower, double upper, double t )
+	{
+
+		double ft = t * KIWI_PI;
+		double f = (1 - cos( ft )) * 0.5;
+
+		return lower * (1 - f) + upper * f;
+
+	}
+
 	std::wstring HRToHexString( HRESULT hr )
 	{
 
@@ -32,6 +69,26 @@ namespace Kiwi
 
 		return wStr.str();
 
+	}
+
+	MemInfo GetSysMemInfo()
+	{
+
+		MEMORYSTATUSEX statex;
+		statex.dwLength = sizeof( statex );
+		GlobalMemoryStatusEx( &statex );
+
+		MemInfo info;
+
+		info.percentInUse = statex.dwMemoryLoad;
+		info.totalPhysical = statex.ullTotalPhys;
+		info.totalPaging = statex.ullTotalPageFile;
+		info.totalVirtual = statex.ullTotalVirtual;
+		info.availablePhysical = statex.ullAvailPhys;
+		info.availablePaging = statex.ullAvailPageFile;
+		info.availableVirtual = statex.ullAvailVirtual;
+
+		return info;
 	}
 
 	//takes the hresult error from a D3D call and converts it to a string representation
@@ -67,7 +124,6 @@ namespace Kiwi
 				error = L"D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD";
 				break;
 			}
-			case D3DERR_INVALIDCALL:
 			case DXGI_ERROR_INVALID_CALL: 
 			{
 				//The method call is invalid.For example, a method's parameter may not be a 
@@ -75,7 +131,6 @@ namespace Kiwi
 				error = L"DXGI_ERROR_INVALID_CALL";
 				break;
 			}
-			case D3DERR_WASSTILLDRAWING:
 			case DXGI_ERROR_WAS_STILL_DRAWING: 
 			{
 				//The previous blit operation that is transferring information to or 

@@ -6,21 +6,43 @@ namespace Kiwi
 
 	IEngineApp::IEngineApp()
 	{
+		m_engine = std::make_unique<Kiwi::EngineRoot>();
 
-		m_engine = new Kiwi::EngineRoot();
-
-		m_graphicsManager = m_engine->GetGraphicsManager();
-		m_sceneManager = m_engine->GetSceneManager();
-
-		m_engine->AddListener( this );
-
+		_kEngine.ConnectFrameEventReceiver( *this, L"", &IEngineApp::_OnFrameEvent );
 	}
 
 	IEngineApp::~IEngineApp()
 	{
+	}
 
-		SAFE_DELETE( m_engine );
+	Kiwi::EventResponse IEngineApp::_OnFrameEvent( std::shared_ptr<Kiwi::FrameEvent> evt )
+	{
+		switch( evt->eventType )
+		{
+			case FrameEventType::FIXED_UPDATE:
+				{
+					this->_OnFixedUpdate();
+					break;
+				}
+			case FrameEventType::UPDATE:
+				{
+					this->_OnUpdate();
+					break;
+				}
+			default: break;
+		}
 
+		return Kiwi::EventResponse::NONE;
+	}
+
+	void IEngineApp::Shutdown()
+	{
+		this->_OnShutdown();
+
+		if( Kiwi::EngineRoot::GetSingletonPtr() )
+		{
+			_kEngine.Stop();
+		}
 	}
 
 }

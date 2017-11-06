@@ -1,7 +1,11 @@
 #ifndef _KIWI_ENTITY_H_
 #define _KIWI_ENTITY_H_
 
+#include "GameObject.h"
 #include "Transform.h"
+#include "Component.h"
+
+#include "../Types.h"
 
 #include <string>
 #include <vector>
@@ -10,84 +14,138 @@
 
 namespace Kiwi
 {
-	class IRenderable;
-	//class Rigidbody;
-	class Scene;
 
-	class Entity
+	class Scene;
+	class EntityManager;
+	class Mesh;
+	class Entity;
+
+	typedef std::unordered_multimap<std::wstring, Kiwi::Entity*> EntityMap;
+	typedef std::vector<Kiwi::Entity*> EntityList;
+
+	class Entity:
+		public Kiwi::GameObject
 	{
+	friend class Scene;
+	friend class EntityManager;
 	public:
 
 		enum EntityType { ENTITY_3D, ENTITY_2D, ENTITY_LIGHT, ENTITY_SOUND };
 
 	protected:
 
-		EntityType m_entityType;
+		/*bitwise mask that stores which components the entity has for fast lookup*/
+		long m_componentMask;
 
-		Kiwi::Scene* m_scene;
+		EntityType m_entityType;
 
 		Kiwi::Entity* m_parent;
 
 		Kiwi::Transform m_transform;
 
-		Kiwi::IRenderable* m_renderable;
-
-		/*unique identifier for the entity*/
-		std::wstring m_name;
-
-		/*optional, non-unique identifiers*/
-		std::unordered_set<std::wstring> m_tags;
-
 		/*map of child entities, sorted by name*/
-		std::unordered_map<std::wstring, Kiwi::Entity*> m_childEntities;
+		std::unordered_multimap<std::wstring, Kiwi::Entity*> m_childEntities;
 
-		/*only active entities are updated and rendered*/
-		bool m_isActive;
+		std::unordered_map<long, std::unique_ptr<Component>> m_components;
+
+	protected:
+
+		virtual Kiwi::Component* _AttachComponent( Kiwi::ComponentType componentType );
+
+		virtual std::unique_ptr<Kiwi::Component> _CreateComponent( Kiwi::ComponentType componentType );
+
+		void _DetachComponent( Kiwi::ComponentType componentType );
+
+		Kiwi::Component* _FindComponent( Kiwi::ComponentType componentType );
+
+		virtual void _OnActivate();
+
+		virtual void _OnDeactivate();
+
+		virtual void _OnComponentAttached( Kiwi::Component* component ) {}
+
+		virtual void _OnComponentDetached( Kiwi::Component* component ) {}
+
+		/*attaches this entity to the target parent entity*/
+		virtual void _SetParent( Kiwi::Entity* parent );
 
 	public:
 
-		Entity(std::wstring name, Kiwi::Scene* scene);
+		Entity(std::wstring name, Kiwi::Scene& scene);
 		virtual ~Entity();
 
-		virtual void Shutdown() {}
-
-		virtual void Update() {}
-
-		virtual void FixedUpdate() {}
-
-		virtual void AddTag(std::wstring tag) { m_tags.insert(tag); }
-
-		/*removes the matching string from the entity*/
-		virtual void RemoveTag(std::wstring tag) { m_tags.erase(tag); }
-		/*removes all tags from the entity*/
-		virtual void RemoveAllTags();
-
-		virtual Kiwi::Entity* FindChildWithName(std::wstring name);
-		virtual std::vector<Kiwi::Entity*> FindChildrenWithTag(std::wstring tag);
-
-		virtual void AttachChild(Kiwi::Entity* entity);
+		virtual void AttachChild( Kiwi::Entity* entity );
 
 		/*detaches the entity (does not destroy it)*/
-		virtual void DetachChild(Kiwi::Entity* entity);
-		/*detaches the entity with the matching name (does not destroy it)*/
-		virtual void DetachChildWithName(std::wstring name);
+		virtual Kiwi::Entity* DetachChild( Kiwi::Entity* entity );
 
-		/*checks if the entity has a certain tag*/ 
-		virtual bool HasTag(std::wstring tag);
+		/*detaches the entity with the matching name (does not destroy it)*/
+		virtual Kiwi::Entity* DetachChildWithName( std::wstring name );
+
+		/*if a component of the matching type is attached, it is detached and destroyed*/
+		void DetachComponent( Kiwi::ComponentType componentName );
+
+		virtual Kiwi::Entity* FindChildWithName( std::wstring name );
+
+		virtual std::vector<Kiwi::Entity*> FindChildrenWithTag( std::wstring tag );
+
+		virtual void FirstUpdate();
+
+		virtual void FixedUpdate();
+
+		virtual const EntityMap& GetChildren() { return m_childEntities; }
+
+		Kiwi::Entity* GetParent()const { return m_parent; }
+
+		virtual Kiwi::Scene* GetScene()const { return m_scene; }
+
+		virtual Entity::EntityType GetType()const { return m_entityType; }
+		
 		/*checks if the entity has any children*/
 		virtual bool HasChild();
 
-		/*attaches this entity to the target parent entity*/
-		virtual void SetParent(Kiwi::Entity* parent);
+		/*returns whether or not a component of a certain type is attached to the entity*/
+		bool HasComponent( Kiwi::ComponentType componentType );
 
-		virtual void SetActive( bool active ) { m_isActive = active; }
+		virtual void SetEntityType( EntityType entityType ) { m_entityType = entityType; }
 
-		virtual Kiwi::IRenderable* GetRenderable()const { return m_renderable; }
-		virtual Kiwi::Transform* GetTransform() { return &m_transform; }
-		virtual Entity::EntityType GetType()const { return m_entityType; }
-		virtual Kiwi::Scene* GetScene()const { return m_scene; }
-		virtual std::wstring GetName()const { return m_name; }
-		virtual bool IsActive()const { return m_isActive; }
+		virtual void Shutdown();
+
+		virtual void Start();
+
+		virtual void Update();
+
+		/*--template member functions--*/
+
+		template<class ComponentType>
+		ComponentType* AttachComponent( Kiwi::ComponentType componentType )
+		{
+			return dynamic_cast<ComponentType*>(this->_AttachComponent( componentType ));
+		}
+
+		template<class ChildType>
+		ChildType* FindChild( const std::wstring& childName )
+		{
+			auto it = m_childEntities.find( name );
+			if( it != m_childEntities.end() )
+			{
+				return dynamic_cast<ChildType*>(it->second);
+			}
+
+			return 0;
+		}
+
+		template<class ComponentType>
+		ComponentType* FindComponent( Kiwi::ComponentType componentType )
+		{
+			return dynamic_cast<ComponentType*>(this->_FindComponent( componentType ));
+		}
+
+		template<>
+		Kiwi::Transform* FindComponent<Kiwi::Transform>( Kiwi::ComponentType componentType )
+		{
+			return &m_transform;
+		}
 
 	};
 };

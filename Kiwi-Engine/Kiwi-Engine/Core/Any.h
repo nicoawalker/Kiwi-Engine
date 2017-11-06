@@ -5,6 +5,8 @@
 #include "Exception.h"
 
 #include <typeinfo>
+#include <string>
+#include <unordered_map>
 
 namespace Kiwi
 {
@@ -62,6 +64,7 @@ namespace Kiwi
 		Kiwi::Any& Swap( Kiwi::Any& other );
 
 		Kiwi::Any& operator=( const Kiwi::Any& other );
+
 		operator const void*() const;
 
 		template<typename ValueType> 
@@ -99,21 +102,24 @@ namespace Kiwi
 	};
 
 	template<typename ValueType>
-	ValueType Any_Cast( const Kiwi::Any& operand )
+	ValueType Any_Cast( const Kiwi::Any& castee )
 	{
 
-		const ValueType* result = operand.GetPointer<ValueType>();
+		const ValueType* result = castee.GetPointer<ValueType>();
 		if( result != 0 )
 		{
 			return *result;
+
 		} else
 		{
-			std::wstring fromType = Kiwi::ToWString(operand.TypeInfo().name());
+			std::wstring fromType = Kiwi::ToWString( castee.TypeInfo().name());
 			std::wstring toType = Kiwi::ToWString(typeid(ValueType).name());
-			throw Kiwi::Exception( L"Any::GetPointer", L"Bad cast. Cannot cast from '" + fromType + L"' to '" + toType + L"'" );
+			throw Kiwi::Exception( L"Any::GetPointer", L"Bad cast. Cannot cast from '" + fromType + L"' to '" + toType + L"'", KIWI_EXCEPTION::BADCAST );
 		}
 
 	}
+
+	typedef std::unordered_map<std::wstring, Kiwi::Any> AnyMap;
 
 }
 

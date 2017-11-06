@@ -9,12 +9,10 @@
 namespace Kiwi
 {
 
-	RasterStateManager::RasterStateManager( Kiwi::Renderer* renderer )
+	RasterStateManager::RasterStateManager( Kiwi::Renderer& renderer )
 	{
-
-		assert( renderer != 0 );
 		
-		m_renderer = renderer;
+		m_renderer = &renderer;
 
 	}
 

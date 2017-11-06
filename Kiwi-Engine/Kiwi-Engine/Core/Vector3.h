@@ -6,6 +6,8 @@
 namespace Kiwi
 {
 
+	class Vector3d;
+
 	class Vector3
 	{
 	public:
@@ -43,16 +45,21 @@ namespace Kiwi
 		std::wstring ToString()const;
 
 		void operator= (const Kiwi::Vector3& vec);
+		void operator= ( const Kiwi::Vector3d& vec );
+
 		void operator+= (const Kiwi::Vector3& vec);
+		void operator+= ( const Kiwi::Vector3d& vec );
 
 		/*returns true if the two vectors are equal*/
 		bool operator== (const Kiwi::Vector3& vec)const;
 
 		//adds the two vectors and returns the result
 		Kiwi::Vector3 operator+ (const Kiwi::Vector3& vec)const;
+		Kiwi::Vector3 operator+ ( const Kiwi::Vector3d& vec )const;
 
 		//subtracts the other vector from this one and returns the result
-		Kiwi::Vector3 operator- (const Kiwi::Vector3& vec)const;
+		Kiwi::Vector3 operator- ( const Kiwi::Vector3& vec )const;
+		Kiwi::Vector3d operator- ( const Kiwi::Vector3d& vec )const;
 
 		//divides each term of this vector by the amount and returns the result
 		Kiwi::Vector3 operator/ (float amount)const;

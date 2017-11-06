@@ -25,6 +25,7 @@ namespace Kiwi
 		OBJMeshData* mesh = 0;
 		std::wstring objPath, matlibFile;
 		std::vector<OBJRawData> rawData;
+		std::vector<std::wstring> materials;
 		//is this a right-hand coordinate system obj file?
 		bool rhCoord = false;
 
@@ -253,35 +254,29 @@ namespace Kiwi
 							std::wstring file = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
 
 							matlibFile = objPath + file;
-							
+							materials.push_back( matlibFile );
 						}
 						break;
 					}
 				case 'u': //usemtl (which material to use)
 					{
-
 						if(lineType.compare(L"usemtl") == 0)
 						{
-
-							//create the new, empty material for these vertices
-							//this material will be filled from the MTL file later
-							OBJMaterialData newMat;
-							newMat.hasTexture = false;
-							newMat.reflectivity = 0.0f;
-							newMat.opticalDensity = 0.0f;
-							newMat.illum = 0;
-							newMat.diffuseColor = Kiwi::Color( 1.0f, 1.0f, 1.0f, 1.0f );
+							//create the new material for these vertices
+							//this material will be filled from the MTL file later;
+							data->mData.hasTexture = false;
+							data->mData.reflectivity = 0.0f;
+							data->mData.opticalDensity = 0.0f;
+							data->mData.illum = 0;
+							data->mData.diffuseColor = Kiwi::Color( 1.0f, 1.0f, 1.0f, 1.0f );
 
 							int pos = (int)currentLine.find_first_of(' ')+1;
-							newMat.name = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
+							data->mData.name = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
 
-							if(newMat.name.compare(L" ") == 0)
+							if( data->mData.name.compare(L" ") == 0)
 							{
-								newMat.name = L"Unnamed";
+								data->mData.name = L"";
 							}
-
-							data->mData = newMat;
-
 						}
 						break;
 					}
@@ -302,6 +297,7 @@ namespace Kiwi
 			//create the mesh object
 			mesh = new OBJMeshData();
 			mesh->vGroups.resize(rawData.size()); //create a group for each raw data group
+			mesh->materialFiles = materials;
 
 
 			//convert each raw data group into an array of vertices for the mesh
@@ -318,264 +314,264 @@ namespace Kiwi
 
 			//mesh is now created, and all vertices are loaded
 			//now go through the mtllib file and load the data for the materials
-			if(matlibFile != L"")
-			{
-				inputFile.open(matlibFile.c_str());
+			//if(matlibFile != L"")
+			//{
+			//	inputFile.open(matlibFile.c_str());
 
-				if(inputFile)
-				{
+			//	if(inputFile)
+			//	{
 
-					bool diffuseSet = false; //if the diffuse color is not set, use the ambient color
-					int matIndex = 0; //index of the current material (in obj->materials) to load data for
+			//		bool diffuseSet = false; //if the diffuse color is not set, use the ambient color
+			//		int matIndex = 0; //index of the current material (in obj->materials) to load data for
 
-					//pointer to the material that we are currently loading data for
-					//null until 'newmtl' is encountered
-					OBJMaterialData* mat = 0;
+			//		//pointer to the material that we are currently loading data for
+			//		//null until 'newmtl' is encountered
+			//		OBJMaterialData* mat = 0;
 
-					//read file
-					std::wstring currentLine;
-					while(getline(inputFile, currentLine))
-					{
+			//		//read file
+			//		std::wstring currentLine;
+			//		while(getline(inputFile, currentLine))
+			//		{
 
-						if(currentLine.size() <= 1) continue; //skip empty lines
+			//			if(currentLine.size() <= 1) continue; //skip empty lines
 
-						while(currentLine[0] == ' ')
-						{
-							currentLine = currentLine.substr(1, std::wstring::npos);
-						}
+			//			while(currentLine[0] == ' ')
+			//			{
+			//				currentLine = currentLine.substr(1, std::wstring::npos);
+			//			}
 
-						if(currentLine.size() <= 1) continue; //skip empty lines
+			//			if(currentLine.size() <= 1) continue; //skip empty lines
 
-						//get first word in the line, store in lineType
-						std::wstringstream ss(currentLine);
-						std::wstring lineType;
-						ss >> lineType;
+			//			//get first word in the line, store in lineType
+			//			std::wstringstream ss(currentLine);
+			//			std::wstring lineType;
+			//			ss >> lineType;
 
-						//check what type of data this line contains, and extract it
-						switch(lineType[0])
-						{
-						case '#': //comment, skip
-							{
-								break;
-							}
-						case 'K':
-						case 'k': //Ka, Kd, Ks, Ke
-							{
+			//			//check what type of data this line contains, and extract it
+			//			switch(lineType[0])
+			//			{
+			//			case '#': //comment, skip
+			//				{
+			//					break;
+			//				}
+			//			case 'K':
+			//			case 'k': //Ka, Kd, Ks, Ke
+			//				{
 
-								if(mat == 0) break; //break if there is no material to load data for
+			//					if(mat == 0) break; //break if there is no material to load data for
 
-								if(lineType.compare(L"Ka") == 0)
-								{ 
-									//ambient color
-									ss >> mat->ambientColor.red;
-									ss >> mat->ambientColor.green;
-									ss >> mat->ambientColor.blue;
+			//					if(lineType.compare(L"Ka") == 0)
+			//					{ 
+			//						//ambient color
+			//						ss >> mat->ambientColor.red;
+			//						ss >> mat->ambientColor.green;
+			//						ss >> mat->ambientColor.blue;
 
-									if(!diffuseSet)
-									{
-										//also store it as the diffuse color, if there is not yet a diffuse color set
-										mat->diffuseColor = mat->ambientColor;
+			//						if(!diffuseSet)
+			//						{
+			//							//also store it as the diffuse color, if there is not yet a diffuse color set
+			//							mat->diffuseColor = mat->ambientColor;
 
-									}
+			//						}
 
-								}else if(lineType.compare(L"Kd") == 0)
-								{ 
-									//diffuse color
-									ss >> mat->diffuseColor.red;
-									ss >> mat->diffuseColor.green;
-									ss >> mat->diffuseColor.blue;
-									mat->diffuseColor.alpha = 1.0f;
+			//					}else if(lineType.compare(L"Kd") == 0)
+			//					{ 
+			//						//diffuse color
+			//						ss >> mat->diffuseColor.red;
+			//						ss >> mat->diffuseColor.green;
+			//						ss >> mat->diffuseColor.blue;
+			//						mat->diffuseColor.alpha = 1.0f;
 
-									diffuseSet = true;
+			//						diffuseSet = true;
 
-								}else if(lineType.compare(L"Ks") == 0)
-								{ 
-									//specular color
-									ss >> mat->specularColor.red;
-									ss >> mat->specularColor.green;
-									ss >> mat->specularColor.blue;
+			//					}else if(lineType.compare(L"Ks") == 0)
+			//					{ 
+			//						//specular color
+			//						ss >> mat->specularColor.red;
+			//						ss >> mat->specularColor.green;
+			//						ss >> mat->specularColor.blue;
 
-								}else if(lineType.compare(L"Ke") == 0)
-								{ 
-									//emissive color
-									ss >> mat->emissiveColor.red;
-									ss >> mat->emissiveColor.green;
-									ss >> mat->emissiveColor.blue;
-								}
+			//					}else if(lineType.compare(L"Ke") == 0)
+			//					{ 
+			//						//emissive color
+			//						ss >> mat->emissiveColor.red;
+			//						ss >> mat->emissiveColor.green;
+			//						ss >> mat->emissiveColor.blue;
+			//					}
 
-								break;
-							}
-						case 'T':
-						case 't': //Tr, Tf
-							{
+			//					break;
+			//				}
+			//			case 'T':
+			//			case 't': //Tr, Tf
+			//				{
 
-								if(mat == 0) break; //break if there is no material to load data for
+			//					if(mat == 0) break; //break if there is no material to load data for
 
-								if(lineType.compare(L"Tr") == 0)
-								{ 
-									//transparency (1=transparent, 0=opaque)
+			//					if(lineType.compare(L"Tr") == 0)
+			//					{ 
+			//						//transparency (1=transparent, 0=opaque)
 
-									float transparency;
-									ss >> transparency;
+			//						float transparency;
+			//						ss >> transparency;
 
-									if(transparency != 0.0f)
-									{
-										//flip the transparency so that 1.0f is opaque
-										mat->diffuseColor.alpha = 1.0f - transparency;
-									}
+			//						if(transparency != 0.0f)
+			//						{
+			//							//flip the transparency so that 1.0f is opaque
+			//							mat->diffuseColor.alpha = 1.0f - transparency;
+			//						}
 
-								}else if(lineType.compare(L"Tf") == 0)
-								{ 
-									//transmission filter (light passing through is filtered by this amount)
-									//Tf r g b
-									ss >> mat->transmissionFilter.red;
-									ss >> mat->transmissionFilter.green;
-									ss >> mat->transmissionFilter.blue;
-								}
+			//					}else if(lineType.compare(L"Tf") == 0)
+			//					{ 
+			//						//transmission filter (light passing through is filtered by this amount)
+			//						//Tf r g b
+			//						ss >> mat->transmissionFilter.red;
+			//						ss >> mat->transmissionFilter.green;
+			//						ss >> mat->transmissionFilter.blue;
+			//					}
 
-								break;
-							}
-						case 'D':
-						case 'd': //d
-							{ 
-								//transparency (0=transparent, 1=opaque)(opposite of Tr)
+			//					break;
+			//				}
+			//			case 'D':
+			//			case 'd': //d
+			//				{ 
+			//					//transparency (0=transparent, 1=opaque)(opposite of Tr)
 
-								if(mat == 0) break; //break if there is no material to load data for
+			//					if(mat == 0) break; //break if there is no material to load data for
 
-								if(lineType.size() > 1) break;
+			//					if(lineType.size() > 1) break;
 
-								float transparency;
-								ss >> transparency;
+			//					float transparency;
+			//					ss >> transparency;
 
-								if(transparency != 1.0f)
-								{
-									mat->diffuseColor.alpha = transparency;
-								}
+			//					if(transparency != 1.0f)
+			//					{
+			//						mat->diffuseColor.alpha = transparency;
+			//					}
 
-								break;
-							}
-						case 'B':
-						case 'b':
-						case 'M': //texture maps
-						case 'm': //map_Ka, map_Kd, map_Ks map_bump, bump
-							{
+			//					break;
+			//				}
+			//			case 'B':
+			//			case 'b':
+			//			case 'M': //texture maps
+			//			case 'm': //map_Ka, map_Kd, map_Ks map_bump, bump
+			//				{
 
-								if(mat == 0) break; //break if there is no material to load data for
+			//					if(mat == 0) break; //break if there is no material to load data for
 
-								if(lineType.compare(L"map_Ka") == 0) //ambient map texture
-								{
+			//					if(lineType.compare(L"map_Ka") == 0) //ambient map texture
+			//					{
 
-									int pos = (int)currentLine.find_first_of(' ')+1;
-									std::wstring map = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
-									
-									//add the filename to the objPath to get the full file path
-									mat->ambientMap = objPath + map;
+			//						int pos = (int)currentLine.find_first_of(' ')+1;
+			//						std::wstring map = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
+			//						
+			//						//add the filename to the objPath to get the full file path
+			//						mat->ambientMap = objPath + map;
 
-								}else if(lineType.compare(L"map_Kd") == 0) //diffuse map texture
-								{
+			//					}else if(lineType.compare(L"map_Kd") == 0) //diffuse map texture
+			//					{
 
-									int pos = (int)currentLine.find_first_of(' ')+1;
-									std::wstring map = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
+			//						int pos = (int)currentLine.find_first_of(' ')+1;
+			//						std::wstring map = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
 
-									//add the filename to the objPath to get the full file path
-									mat->diffuseMap = objPath + map;
-									mat->hasTexture = true;
+			//						//add the filename to the objPath to get the full file path
+			//						mat->diffuseMap = objPath + map;
+			//						mat->hasTexture = true;
 
-								}else if(lineType.compare(L"map_Ks") == 0) //specular map texture
-								{
+			//					}else if(lineType.compare(L"map_Ks") == 0) //specular map texture
+			//					{
 
-									int pos = (int)currentLine.find_first_of(' ')+1;
-									std::wstring map = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
+			//						int pos = (int)currentLine.find_first_of(' ')+1;
+			//						std::wstring map = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
 
-									//add the filename to the objPath to get the full file path
-									mat->specularMap = objPath + map;
+			//						//add the filename to the objPath to get the full file path
+			//						mat->specularMap = objPath + map;
 
-								}else if(lineType.compare(L"map_bump") == 0 || lineType.compare(L"bump") == 0) //bump map texture
-								{
+			//					}else if(lineType.compare(L"map_bump") == 0 || lineType.compare(L"bump") == 0) //bump map texture
+			//					{
 
-									int pos = (int)currentLine.find_first_of(' ')+1;
-									std::wstring map = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
+			//						int pos = (int)currentLine.find_first_of(' ')+1;
+			//						std::wstring map = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
 
-									//add the filename to the objPath to get the full file path
-									mat->bumpMap = objPath + map;
+			//						//add the filename to the objPath to get the full file path
+			//						mat->bumpMap = objPath + map;
 
-								}
+			//					}
 
-								break;
-							}
-						case 'N':
-						case 'n': //Ns, Ni, newmtl
-							{
-								if(lineType.compare(L"newmtl") == 0)
-								{
+			//					break;
+			//				}
+			//			case 'N':
+			//			case 'n': //Ns, Ni, newmtl
+			//				{
+			//					if(lineType.compare(L"newmtl") == 0)
+			//					{
 
-									//get the name of the material
-									std::wstring mtlName;
-									int pos = (int)currentLine.find_first_of(' ')+1;
-									if(pos < currentLine.size())
-									{
-										mtlName = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
-									}else
-									{
-										mtlName = L"Unnamed";
-									}
-									//try to find the material in the mesh data
-									for(unsigned int i = 0; i < mesh->vGroups.size(); i++)
-									{
-										if(mesh->vGroups[i].mData.name.compare(mtlName) == 0)
-										{
-											//found the material, now set the pointer to this material
-											mat = &mesh->vGroups[i].mData;
-										}
-									}
+			//						//get the name of the material
+			//						std::wstring mtlName;
+			//						int pos = (int)currentLine.find_first_of(' ')+1;
+			//						if(pos < currentLine.size())
+			//						{
+			//							mtlName = currentLine.substr(pos, currentLine.find_first_of('\n')-pos);
+			//						}else
+			//						{
+			//							mtlName = L"Unnamed";
+			//						}
+			//						//try to find the material in the mesh data
+			//						for(unsigned int i = 0; i < mesh->vGroups.size(); i++)
+			//						{
+			//							if(mesh->vGroups[i].mData.name.compare(mtlName) == 0)
+			//							{
+			//								//found the material, now set the pointer to this material
+			//								mat = &mesh->vGroups[i].mData;
+			//							}
+			//						}
 
-								}else if(mat != 0)
-								{
-									
-									if(lineType.compare(L"Ns") == 0 && matIndex != -1)
-									{
-										//specular power, 0-1000 (reflectivity)
-										ss >> mat->reflectivity;
+			//					}else if(mat != 0)
+			//					{
+			//						
+			//						if(lineType.compare(L"Ns") == 0 && matIndex != -1)
+			//						{
+			//							//specular power, 0-1000 (reflectivity)
+			//							ss >> mat->reflectivity;
 
-									}else if(lineType.compare(L"Ni") == 0 && matIndex != -1)
-									{
-										//optical density, 0-10 (used to bend light)
-										ss >> mat->opticalDensity;
-									}
-								}
+			//						}else if(lineType.compare(L"Ni") == 0 && matIndex != -1)
+			//						{
+			//							//optical density, 0-10 (used to bend light)
+			//							ss >> mat->opticalDensity;
+			//						}
+			//					}
 
-								break;
-							}
-						case 'I':
-						case 'i': //illumination
-							{
+			//					break;
+			//				}
+			//			case 'I':
+			//			case 'i': //illumination
+			//				{
 
-								if(mat == 0) break; //break if there is no material to load data for
+			//					if(mat == 0) break; //break if there is no material to load data for
 
-								if(lineType.compare(L"illum") == 0)
-								{
-									//illumination model, 0-10
-									ss >> mat->illum;
-								}
+			//					if(lineType.compare(L"illum") == 0)
+			//					{
+			//						//illumination model, 0-10
+			//						ss >> mat->illum;
+			//					}
 
-								break;
-							}
-						default:break;
-						}
-					}
+			//					break;
+			//				}
+			//			default:break;
+			//			}
+			//		}
 
-				}else
-				{
-					inputFile.close();
+			//	}else
+			//	{
+			//		inputFile.close();
 
-					throw Kiwi::Exception( L"OBJImporter::Import", L"Failed to open MTL file: " + matlibFile );
-				}
+			//		throw Kiwi::Exception( L"OBJImporter::Import", L"Failed to open MTL file: " + matlibFile );
+			//	}
 
-				inputFile.close();
-			}else
-			{
-				//Logger.Log(L"No MTLLIB for: "+objFile);
-			}
+			//	inputFile.close();
+			//}else
+			//{
+			//	//Logger.Log(L"No MTLLIB for: "+objFile);
+			//}
 
 		}else
 		{
@@ -683,6 +679,5 @@ namespace Kiwi
 		}
 
 	}
-
 
 };

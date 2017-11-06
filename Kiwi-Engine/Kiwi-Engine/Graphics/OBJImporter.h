@@ -4,8 +4,10 @@
 #include "Color.h"
 
 #include "../Core/Vector2.h"
-#include "../Core/Vector3.h"
+#include "..\Core\Vector3.h"
 #include "../Core/Vector4.h"
+
+#include "..\Types.h"
 
 #include <string>
 #include <vector>
@@ -63,6 +65,7 @@ namespace Kiwi
 	struct OBJMeshData
 	{
 		std::vector<OBJVertexGroup> vGroups;
+		std::vector<std::wstring> materialFiles;
 	};
 
 	class OBJImporter
@@ -81,7 +84,7 @@ namespace Kiwi
 		OBJImporter(){}
 		~OBJImporter(){}
 
-		OBJMeshData* Import(std::wstring objFile);
+		OBJMeshData* Import( std::wstring objFile );
 
 	};
 

@@ -182,499 +182,6 @@ namespace Kiwi
 		this->FreePixelShaderResources();
 	}
 
-	void Renderer::_RenderMeshGroup( std::vector<Kiwi::Submesh*>& meshGroup, bool transparencyCulling )
-	{
-	//	if( m_currentSettings.activeScene == nullptr ) return;
-	//	
-	//	std::wstring curShaderName;
-	//	Kiwi::IShader* curShader = nullptr;
-	//	long currentMaterialUID = -1;
-	//	unsigned long meshID = 0;
-
-	//	for( auto meshItr = meshGroup.begin(); meshItr != meshGroup.end(); meshItr++ )
-	//	{
-	//		/*submeshes are sorted by shader > material texture > mesh ID*/
-	//		Kiwi::Submesh* curSubmesh = (*meshItr);
-	//		if( curSubmesh == nullptr ) continue;
-
-	//		/*if the shader has changed, switch to the new shader and set the shader's frame parameters*/
-	//		if( curShaderName.compare( curSubmesh->material.GetShader() ) != 0 )
-	//		{
-	//			curShaderName = curSubmesh->material.GetShader();
-	//			curShader = _kEngine.GetAssetManager().FindAsset<Kiwi::IShader>( L"Shader", curShaderName );
-	//			if( curShader == nullptr )
-	//			{
-	//				continue;
-	//			}
-	//			
-	//			this->SetShader( curShader );
-	//			curShader->SetPerFrame( *m_currentSettings.activeScene );
-	//		}
-	//		if( curShader == nullptr ) continue;
-
-	//		/*if the material has changed, set the new material's parameters*/
-	//		if( curSubmesh->material.GetUID() != currentMaterialUID )
-	//		{
-	//			currentMaterialUID = curSubmesh->material.GetUID();
-	//			curShader->SetPerMaterial( *m_currentSettings.activeScene, curSubmesh->material );
-	//		}
-
-	//		/*bind the mesh set the per-object data if the mesh has changed*/
-	//		if( meshID != curSubmesh->parent->GetEntity()->GetID() )
-	//		{
-	//			try
-	//			{
-	//				if( curSubmesh->parent->Bind( *this ) == false )
-	//				{
-	//					continue;
-	//				}
-	//				curShader->SetPerObject( *m_currentSettings.activeScene, *m_currentSettings.viewport, *curSubmesh );
-	//				meshID = curSubmesh->parent->GetEntity()->GetID();
-
-	//				if( curSubmesh->parent->GetPrimitiveTopology() != m_currentSettings.primitiveTopology )
-	//				{
-	//					this->SetPrimitiveTopology( curSubmesh->parent->GetPrimitiveTopology() );
-	//				}
-
-	//			} catch( ... )
-	//			{
-	//				continue;
-	//			}
-	//		}
-
-	//		//find the size of the submesh
-	//		unsigned int subsetSize = (curSubmesh->endIndex - curSubmesh->startIndex) + 1;
-
-	//		if( curSubmesh->parent->IsInstanced() )
-	//		{
-	//			//draw all of the instances of the mesh
-	//			if( transparencyCulling )
-	//			{
-	//				/*draw back faces first to preserve transparency*/
-	//				this->SetRasterState( L"CullCW" );
-	//				this->DrawIndexedInstanced( subsetSize, curSubmesh->parent->GetInstanceCount(), curSubmesh->startIndex, 0, 0 );
-	//				/*then draw front faces over the back faces*/
-	//				this->SetRasterState( L"CullCCW" );
-	//				this->DrawIndexedInstanced( subsetSize, curSubmesh->parent->GetInstanceCount(), curSubmesh->startIndex, 0, 0 );
-
-	//			} else
-	//			{
-	//				this->DrawIndexedInstanced( subsetSize, curSubmesh->parent->GetInstanceCount(), curSubmesh->startIndex, 0, 0 );
-	//			}
-
-	//		} else
-	//		{
-	//			//render the mesh without instancing
-	//			if( curSubmesh->parent->GetEntity()->GetType() != Kiwi::Entity::ENTITY_2D && transparencyCulling )
-	//			{
-	//				/*draw back faces first to preserve transparency*/
-	//				this->SetRasterState( L"CullCW" );
-	//				this->DrawIndexed( subsetSize, curSubmesh->startIndex, 0 );
-	//				/*then draw front faces over the back faces*/
-	//				this->SetRasterState( L"CullCCW" );
-	//				this->DrawIndexed( subsetSize, curSubmesh->startIndex, 0 );
-
-	//			} else
-	//			{
-	//				this->DrawIndexed( subsetSize, curSubmesh->startIndex, 0 );
-	//			}
-	//		}
-
-	//	}
-	//	
-	//	this->FreePixelShaderResources();
-	}
-
-	void Renderer::_RenderActiveTarget( Kiwi::RenderQueue& renderQueue )
-	{
-		//Kiwi::RenderTarget* renderTarget = m_currentSettings.renderTarget;
-		//if( renderTarget == nullptr ) return;
-
-		///*loop through each viewport belonging to this render target*/
-		//for( unsigned int i = 0; i < renderTarget->GetViewportCount(); i++ )
-		//{
-		//	/*get the current viewport. all viewports for the render target were already bound by the call to SetRenderTarget*/
-		//	m_currentSettings.viewport = renderTarget->GetViewport( i );
-		//	if( m_currentSettings.viewport == 0 ) continue;
-
-		//	/*render every render group passed to this function*/
-		//	for( auto itr = renderQueue.GetRenderGroups().begin(); itr != renderQueue.GetRenderGroups().end(); itr++ )
-		//	{
-		//		/*get the render group from the group name*/
-		//		Kiwi::RenderQueueGroup* renderGroup = itr->second.get();
-		//		if( renderGroup != nullptr )
-		//		{
-		//			/*sort the submeshes in the render group*/
-		//			renderGroup->Sort( *m_currentSettings.viewport );
-
-		//			/*render the solid models first*/
-		//			this->_RenderModelQueue( renderGroup->GetSolidModelQueue() );
-		//			//this->_RenderMeshGroup( renderGroup->GetSolids(), false );
-
-		//			/*next render the transparents*/
-		//			this->_RenderModelQueue( renderGroup->GetTransparentModelQueue() );
-		//			//this->_RenderMeshGroup( renderGroup->GetTransparents(), true );
-		//			
-		//			/*need to disable the depth buffer for the 2d models*/
-		//			this->EnableDepthBuffer( false );
-		//			this->_RenderModelQueue( renderGroup->Get2DModelQueue() );
-		//			//this->_RenderMeshGroup( renderGroup->Get2D(), false );
-		//			this->EnableDepthBuffer( true );
-		//		}
-		//	}
-		//}
-	}
-
-	void Renderer::_RenderActiveTarget()
-	{
-		//Kiwi::RenderTarget* renderTarget = m_currentSettings.renderTarget;
-		//if( renderTarget == nullptr )
-		//{
-		//	return;
-		//}
-
-		///*loop through each viewport belonging to this render target*/
-		//for( unsigned int i = 0; i < renderTarget->GetViewportCount(); i++ )
-		//{
-		//	/*get the current viewport. all viewports for the render target were already bound by the call to SetRenderTarget*/
-		//	m_currentSettings.viewport = renderTarget->GetViewport( i );
-		//	if( m_currentSettings.viewport == 0 ) continue;
-
-		//	/*get the list of render groups that should be rendered to this viewport*/
-		//	std::vector<std::wstring> renderGroups;
-		//	if( m_currentSettings.viewport->UsingDefaultRenderGroup() )
-		//	{
-		//		renderGroups.push_back( L"_default" );
-
-		//	} else
-		//	{
-		//		renderGroups = m_currentSettings.viewport->GetRenderGroupList();
-		//	}
-
-		//	/*loop through each render group*/
-		//	for( auto GroupName : renderGroups )
-		//	{
-		//		/*get the render group from the group name*/
-		//		Kiwi::RenderQueueGroup* renderGroup = m_currentSettings.renderQueue.FindRenderGroup( GroupName );
-		//		if( renderGroup != 0 )
-		//		{
-		//			/*sort the submeshes in the render group*/
-		//			renderGroup->Sort( *m_currentSettings.viewport );
-
-		//			/*render the solid models first*/
-		//			this->_RenderModelQueue( renderGroup->GetSolidModelQueue() );
-		//			//this->_RenderMeshGroup( renderGroup->GetSolids(), false );
-
-		//			/*next render the transparents*/
-		//			this->_RenderModelQueue( renderGroup->GetTransparentModelQueue() );
-		//			//this->_RenderMeshGroup( renderGroup->GetTransparents(), true );
-
-		//			/*need to disable the depth buffer for the 2d models*/
-		//			this->EnableDepthBuffer( false );
-		//			this->_RenderModelQueue( renderGroup->Get2DModelQueue() );
-		//			//this->_RenderMeshGroup( renderGroup->Get2D(), false );
-		//			this->EnableDepthBuffer( true );
-		//		}
-		//	}
-		//}
-
-
-
-
-
-
-		//Kiwi::RenderTarget* renderTarget = this->GetActiveRenderTarget();
-		//if( renderTarget == 0 || renderQueue == 0 )
-		//{
-		//	return;
-		//}
-
-		//Kiwi::Console* console = scene.GetEngine()->GetConsole();
-
-		//this->EnableDepthBuffer( true );
-		//this->SetRasterState( L"CullCCW" );
-
-		//for( unsigned int i = 0; i < renderTarget->GetViewportCount(); i++ )
-		//{
-		//	Kiwi::Viewport* vp = renderTarget->GetViewport( i );
-
-		//	std::vector<std::wstring> renderGroups;
-		//	if( vp->UsingDefaultRenderGroup() )
-		//	{
-		//		renderGroups.push_back( L"_default" );
-
-		//	} else
-		//	{
-		//		renderGroups = vp->GetRenderGroupList();
-		//	}
-		//	
-		//	this->SetViewport( vp );
-
-		//	for( auto GroupName : renderGroups )
-		//	{
-		//		Kiwi::RenderQueueGroup* rcq = renderQueue->FindRenderGroup( GroupName );
-
-		//		if( rcq )
-		//		{
-		//			//sort the meshes in the render group based on the position of the camera in this viewport
-		//			rcq->Sort( *vp );
-
-		//			Kiwi::IShader* currentShader = 0;
-		//			Kiwi::Mesh* currentMesh = 0;
-
-		//			//first render all of the solid 3D meshes
-		//			for( auto solidItr = rcq->BeginSolids(); solidItr != rcq->EndSolids(); solidItr++ )
-		//			{
-		//				if( (*solidItr) == 0 )
-		//				{
-		//					console->Print( L"Attempted to render null mesh in render group " + rcq->GetName(), true );
-		//					continue;
-		//				}
-
-		//				if( currentMesh == 0 || currentMesh->GetName() != (*solidItr)->GetName() )
-		//				{
-		//					try
-		//					{
-		//						//bind will throw if the mesh buffers have not been initialized
-		//						(*solidItr)->Bind( *this );
-
-		//						if( (*solidItr)->GetPrimitiveTopology() != m_activePrimitiveTopology )
-		//						{
-		//							this->SetPrimitiveTopology( (*solidItr)->GetPrimitiveTopology() );
-		//						}
-
-		//					} catch( ... )
-		//					{
-		//						//cant render this mesh, move on to the next one
-		//						console->Print( L"Failed to bind mesh '" + (*solidItr)->GetName() + L"'", true );
-		//						continue;
-		//					}
-		//				}
-
-		//				currentMesh = (*solidItr);
-
-		//				//mesh is bound
-		//				for( unsigned int i = 0; i < currentMesh->GetSubmeshCount(); i++ )
-		//				{
-		//					//get the current subset
-		//					Kiwi::Submesh* subset = currentMesh->GetSubmesh( i );
-		//					if( !subset )
-		//					{
-		//						console->Print( L"Attempted to render null submesh in mesh " + currentMesh->GetName(), true );
-		//						continue;
-		//					}
-
-		//					//bind the material's shader
-		//					std::wstring matShaderName = subset->material.GetShader();
-		//					if( matShaderName.compare( L"" ) == 0 )
-		//					{
-		//						matShaderName = L"default";
-		//					}
-
-		//					if( currentShader == 0 || currentShader->GetName().compare( matShaderName ) != 0 )
-		//					{
-		//						currentShader = scene.FindAsset<Kiwi::IShader>( matShaderName );
-		//						if( currentShader == 0 )
-		//						{
-		//							console->Print( L"Mesh " + currentMesh->GetName() + L" contains material with invalid shader", true );
-		//							continue;
-		//						}
-		//						this->SetShader( currentShader );
-		//						currentShader->SetFrameParameters( scene );
-		//					}
-
-		//					//find the size of the subset
-		//					unsigned int subsetSize = (subset->endIndex - subset->startIndex) + 1;
-
-		//					//set the renderable's shader parameters
-		//					currentShader->SetObjectParameters( scene, *vp, *subset );
-
-		//					if( currentMesh->IsInstanced() )
-		//					{
-		//						//draw all of the instances of the mesh
-		//						this->DrawIndexedInstanced( subsetSize, currentMesh->GetInstanceCount(), subset->startIndex, 0, 0 );
-
-		//					} else
-		//					{
-		//						//render the mesh without instancing
-		//						this->DrawIndexed( subsetSize, subset->startIndex, 0 );
-		//					}
-		//				}
-		//			}
-
-					//now the transparent 3d renderables
-					//auto transItr = rcq->BeginTransparents();
-					//for( ; transItr != rcq->EndTransparents(); transItr++ )
-					//{
-
-					//	currentMesh = (*transItr);
-					//	if( currentMesh == 0 )
-					//	{
-					//		console->Print( L"Attempted to render null mesh in render group " + rcq->GetName(), true );
-					//		continue;
-					//	}
-					//	try
-					//	{
-					//		//bind will throw if the mesh buffers have not been initialized
-					//		currentMesh->Bind( *this );
-
-					//		if( currentMesh->GetPrimitiveTopology() != m_activePrimitiveTopology )
-					//		{
-					//			this->SetPrimitiveTopology( currentMesh->GetPrimitiveTopology() );
-					//		}
-
-					//	} catch( ... )
-					//	{
-					//		//cant render this mesh, move on to the next one
-					//		console->Print( L"Failed to bind mesh '" + currentMesh->GetName() + L"'", true );
-					//		continue;
-					//	}
-
-					//	//mesh is bound, now render each subset of the mesh
-					//	for( unsigned int i = 0; i < currentMesh->GetSubmeshCount(); i++ )
-					//	{
-					//		//get the current subset
-					//		Kiwi::Submesh* subset = currentMesh->GetSubmesh( i );
-
-					//		if( !subset )
-					//		{
-					//			console->Print( L"Attempted to render null submesh in mesh " + (*transItr)->GetName(), true );
-					//			continue;
-					//		}
-
-					//		//bind the material's shader
-					//		std::wstring matShaderName = subset->material.GetShader();
-					//		if( matShaderName.compare( L"" ) == 0 )
-					//		{
-					//			matShaderName = L"default";
-					//		}
-					//		if( currentShader == 0 || currentShader->GetName().compare( matShaderName ) != 0 )
-					//		{
-					//			currentShader = scene.FindAsset<Kiwi::IShader>( matShaderName );
-					//			if( currentShader == 0 )
-					//			{
-					//				console->Print( L"Mesh " + currentMesh->GetName() + L" contains material with invalid shader", true );
-					//				continue;
-					//			}
-					//			this->SetShader( currentShader );
-					//			currentShader->SetFrameParameters( scene );
-					//		}
-
-					//		//find the size of the subset
-					//		unsigned int subsetSize = (subset->endIndex - subset->startIndex) + 1;
-
-					//		//set the renderable's shader parameters
-					//		currentShader->SetObjectParameters( scene, *vp, *subset );
-
-					//		if( currentMesh->IsInstanced() )
-					//		{
-					//			//draw all of the instances of the mesh
-					//			this->SetRasterState( L"CullCW" );
-					//			this->DrawIndexedInstanced( subsetSize, currentMesh->GetInstanceCount(), subset->startIndex, 0, 0 );
-					//			this->SetRasterState( L"CullCCW" );
-					//			this->DrawIndexedInstanced( subsetSize, currentMesh->GetInstanceCount(), subset->startIndex, 0, 0 );
-
-					//		} else
-					//		{
-					//			//now draw the renderable to the render target twice, once for the back faces
-					//			//and then again for the front faces
-					//			this->SetRasterState( L"CullCW" );
-					//			this->DrawIndexed( subsetSize, subset->startIndex, 0 );
-					//			this->SetRasterState( L"CullCCW" );
-					//			this->DrawIndexed( subsetSize, subset->startIndex, 0 );
-					//		}
-
-					//	}
-
-					//}
-
-					//this->EnableDepthBuffer( false );
-
-					////then render all of the 2D renderables
-					//auto itr2D = rcq->Begin2D();
-					//for( ; itr2D != rcq->End2D(); itr2D++ )
-					//{
-					//	currentMesh = (*itr2D);
-					//	if( currentMesh == 0 )
-					//	{
-					//		console->Print( L"Attempted to render null mesh in render group " + rcq->GetName(), true );
-					//		continue;
-					//	}
-					//	try
-					//	{
-					//		//bind will throw if the mesh buffers have not been initialized
-					//		currentMesh->Bind( *this );
-
-					//		if( currentMesh->GetPrimitiveTopology() != m_activePrimitiveTopology )
-					//		{
-					//			this->SetPrimitiveTopology( currentMesh->GetPrimitiveTopology() );
-					//		}
-
-					//	} catch( ... )
-					//	{
-					//		//cant render this mesh, move on to the next one
-					//		console->Print( L"Failed to bind mesh '" + currentMesh->GetName() + L"'", true );
-					//		continue;
-					//	}
-
-					//	//mesh is bound, now render each subset of the mesh
-					//	for( unsigned int i = 0; i < currentMesh->GetSubmeshCount(); i++ )
-					//	{
-					//		//get the current subset
-					//		Kiwi::Submesh* subset = currentMesh->GetSubmesh( i );
-					//		if( !subset )
-					//		{
-					//			console->Print( L"Attempted to render null submesh in mesh " + currentMesh->GetName(), true );
-					//			continue;
-					//		}
-
-					//		//bind the material's shader
-					//		std::wstring matShaderName = subset->material.GetShader();
-					//		if( matShaderName.compare( L"" ) == 0 )
-					//		{
-					//			matShaderName = L"default";
-					//		}
-					//		if( currentShader == 0 || currentShader->GetName().compare( matShaderName ) != 0 )
-					//		{
-					//			currentShader = scene.FindAsset<Kiwi::IShader>( matShaderName );
-					//			if( currentShader == 0 )
-					//			{
-					//				console->Print( L"Mesh " + currentMesh->GetName() + L" contains material with invalid shader", true );
-					//				continue;
-					//			}
-					//			this->SetShader( currentShader );
-					//			currentShader->SetFrameParameters( scene );
-					//		}
-
-					//		//find the size of the subset
-					//		unsigned int subsetSize = (subset->endIndex - subset->startIndex) + 1;
-
-					//		//set the renderable's shader parameters
-					//		currentShader->SetObjectParameters( scene, *vp, *subset );
-
-					//		if( currentMesh->IsInstanced() )
-					//		{
-					//			//draw all of the instances of the mesh
-					//			this->DrawIndexedInstanced( subsetSize, currentMesh->GetInstanceCount(), subset->startIndex, 0, 0 );
-
-					//		} else
-					//		{
-					//			//render the mesh without instancing
-					//			this->DrawIndexed( subsetSize, subset->startIndex, 0 );
-					//		}
-					//	}
-
-					//}
-
-					//this->EnableDepthBuffer( true );
-				//}
-			//}
-
-			//MessageBox( NULL, L"A", Kiwi::ToWString( counter ).c_str(), MB_OK );
-		//}
-
-	}
-
 	Kiwi::BlendState* Renderer::CreateBlendState( std::wstring name, const KiwiBlendDesc& rtBlendDesc, unsigned int sampleMask )
 	{
 		return m_rsoManager.CreateBlendState( name, rtBlendDesc, sampleMask );
@@ -734,7 +241,6 @@ namespace Kiwi
 				if( viewportIndex >= rt->GetViewportCount() ) viewportIndex = 0;
 
 				this->SetViewport( rt->GetViewport( (unsigned int)viewportIndex ) );
-				//KIWIDEBUGSTRING( L"changed viewport " );
 			}
 
 			//test translucency bits
@@ -750,7 +256,6 @@ namespace Kiwi
 				{
 					//non-opaque
 				}
-				//KIWIDEBUGSTRING( L"changed transluncency type " );
 			}
 
 			//test material bits
@@ -760,7 +265,6 @@ namespace Kiwi
 				/*changing material*/
 				materialID = renderKey;
 				material = subset->GetMaterial();
-				//KIWIDEBUGSTRING( L"changed material " );
 
 				/*test shader bits*/
 				renderKey = (renderableItr->renderKey & Kiwi::RenderableBitmask::Shader) >> Kiwi::RenderableBitmask::Bit::Shader;
@@ -770,7 +274,6 @@ namespace Kiwi
 					shaderID = renderKey;
 
 					this->SetShader( material->GetShader() );
-					//KIWIDEBUGSTRING( L"changed shader " );
 
 					if( m_currentSettings.shader == nullptr ) continue;
 					
@@ -797,8 +300,6 @@ namespace Kiwi
 				{
 					this->SetPrimitiveTopology( model->GetPrimitiveTopology() );
 				}
-
-				//KIWIDEBUGSTRING( L"changed model " );
 			}
 
 			m_currentSettings.shader->SetPerObject( *m_currentSettings.activeScene, *m_currentSettings.viewport, *model, renderableItr->subsetIndex );
@@ -832,7 +333,6 @@ namespace Kiwi
 				/*draw front faces*/
 				this->SetRasterState( L"CullCCW" );
 				this->DrawIndexedInstanced( subset->numIndices, (unsigned int)model->GetInstanceData().size(), subset->indexOffset, subset->vertexOffset, 0 );
-				//KIWIDEBUGSTRING( L"rendered instanced " );
 
 			} else
 			{
@@ -846,11 +346,8 @@ namespace Kiwi
 				/*draw front faces*/
 				this->SetRasterState( L"CullCCW" );
 				this->DrawIndexed( subset->numIndices, subset->indexOffset, subset->vertexOffset );
-				//KIWIDEBUGSTRING( L"rendered non-instanced " );
 			}
-			//KIWIDEBUGSTRING( L"rendered one.\n" );
 		}
-		//KIWIDEBUGSTRING( L"Rendering end\n" );
 
 		this->FreePixelShaderResources();
 	}
@@ -889,29 +386,6 @@ namespace Kiwi
 
 		/*let listeners know that rendering has ended*/
 		this->EmitRenderEvent( std::make_shared<Kiwi::RenderEvent>( this, L"PostRender" ) );
-
-		////get a list of all render targets, sorted by lowest to highest priority (back to front), and render them all
-		//Kiwi::RenderTargetList rtList = m_renderTargetManager.GetRenderTargetList();
-		//for( auto itr = rtList.targets.begin(); itr != rtList.targets.end(); itr++ )
-		//{
-		//	if( (*itr)->AutoRenderEnabled() == false ) continue; //dont auto-render render targets  set to manual
-
-		//	if( (*itr)->GetName().compare( L"Backbuffer" ) == 0 ) continue; //skip rendering to the back buffer for now
-
-		//	/*bind each render target as the active render target*/
-		//	this->SetRenderTarget( *itr );
-
-		//	this->_ClearRenderTarget( *itr );
-
-		//	/*render all render groups used by the active render target*/
-		//	this->_RenderActiveTarget();
-		//}
-
-		///*now render each render target to the back buffer*/
-		///*render the back buffer first*/
-		//this->SetRenderTarget( m_backBuffer );
-		//this->_ClearRenderTarget( m_currentSettings.renderTarget );
-		//this->_RenderActiveTarget();
 	}
 
 	void Renderer::RenderToTexture( Kiwi::RenderTarget* renderTexture )

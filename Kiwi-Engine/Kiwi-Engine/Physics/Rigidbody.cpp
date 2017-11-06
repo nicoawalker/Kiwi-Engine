@@ -57,20 +57,6 @@ namespace Kiwi
 
 				m_appliedForce += gravity * m_mass * fixedDeltaTime;
 
-				//Kiwi::Vector3d Ff;
-				//if( m_velocity.x > 0.0 || m_velocity.z > 0.0 )
-				//{
-				//	double Fn = std::abs( gravity.y * m_mass ); //normal force
-				//	Kiwi::Vector3d temp = m_velocity;
-				//	temp.y = 0.0;
-				//	Kiwi::Vector3d Ff = (temp.Normalized() * -1.0) * (Fn * m_frictionStatic); //frictional force
-				//	Ff.y = 0.0;
-				//	//temp = m_appliedForce;
-				//	//temp.y = 0.0;
-				//	//Ff.ClampMagnitude( m_velocity.Magnitude() );
-				//	m_appliedForce += Ff;
-				//}
-
 				//Velocity verlet integration
 				Kiwi::Vector3d lastAccel = m_acceleration;
 				transform->Translate( m_velocity * fixedDeltaTime );
@@ -121,30 +107,5 @@ namespace Kiwi
 		return Component::_AttachComponent( std::move( component ) );
 
 	}
-
-	/*Kiwi::Collider* Rigidbody::AttachComponent( Kiwi::Collider* collider )
-	{
-
-		if( collider )
-		{
-			if( m_collider )
-			{
-				if( m_collider == collider )
-				{
-					return m_collider;
-				}
-
-				this->DetachComponent( m_collider->GetID() );
-			}
-
-			this->_AttachComponent( collider );
-
-			m_collider = collider;
-			m_collider->AddCollisionEventListener( this );
-		}
-
-		return collider;
-
-	}*/
 
 }

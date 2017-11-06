@@ -152,14 +152,6 @@ namespace Kiwi
 
 		void _DrawRenderTarget( Kiwi::RenderTarget* rt );
 
-		/*renders all of the active render target's render groups to that target*/
-		void _RenderActiveTarget();
-
-		/*renders a custom queue of meshes to the active render target*/
-		void _RenderActiveTarget( Kiwi::RenderQueue& renderQueue );
-
-		void _RenderMeshGroup( std::vector<Kiwi::Submesh*>& meshGroup, bool renderTransparency );
-
 		/*renders a queue of models*/
 		void _RenderModelQueue( RenderQueueGroup::ModelQueue& modelQueue );
 
